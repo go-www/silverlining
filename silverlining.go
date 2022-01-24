@@ -151,7 +151,7 @@ func (r *RequestContext) Body() ([]byte, error) {
 	return buffer, err
 }
 
-func (r *RequestContext) ReadAsJSON(v interface{}) error {
+func (r *RequestContext) ReadAsJSON(v any) error {
 	bodyReader := r.BodyReader()
 	return json.NewDecoder(&bodyReader).Decode(v)
 }
