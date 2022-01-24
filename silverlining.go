@@ -7,7 +7,10 @@ import (
 	"sync"
 
 	"github.com/go-www/h1"
+	jsoniter "github.com/json-iterator/go"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 type Handler func(r *RequestContext)
 
@@ -146,4 +149,9 @@ func (r *RequestContext) Body() ([]byte, error) {
 	reader := r.BodyReader()
 	_, err := io.ReadAtLeast(&reader, buffer, int(r.request.ContentLength))
 	return buffer, err
+}
+
+func (r *RequestContext) ReadAsJSON(v interface{}) error {
+	bodyReader := r.BodyReader()
+	return json.NewDecoder(&bodyReader).Decode(v)
 }
