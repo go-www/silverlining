@@ -8,7 +8,7 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 func (r *RequestContext) ReadAsJSON(v any) error {
 	bodyReader := r.BodyReader()
-	return json.NewDecoder(&bodyReader).Decode(v)
+	return json.NewDecoder(bodyReader).Decode(v)
 }
 
 func (r *RequestContext) WriteAsJSON(v any) error {

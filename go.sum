@@ -1,11 +1,15 @@
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/go-www/h1 v0.0.0-20220123135214-36428e135324 h1:xpZczObBqT+m8C9di+hvit+2bQu7jNy8mkRl+XY8TT8=
-github.com/go-www/h1 v0.0.0-20220123135214-36428e135324/go.mod h1:pFiXMva/K5c/blSpJXy+p37srAPG8YjbHObQ8oMZzms=
+github.com/go-www/h1 v0.0.0-20220212131224-8c83f6c08f60 h1:NQFKSW2TkbYgwM9KFt/Pp7JeXeFTA38APSs60XVZ8Jo=
+github.com/go-www/h1 v0.0.0-20220212131224-8c83f6c08f60/go.mod h1:pFiXMva/K5c/blSpJXy+p37srAPG8YjbHObQ8oMZzms=
+github.com/go-www/h1 v0.0.0-20220220144721-d5737cc72654 h1:Z+WkdmWDo1JaGvnvPzyXY8UqXLS54cKO6CuOICL2cv8=
+github.com/go-www/h1 v0.0.0-20220220144721-d5737cc72654/go.mod h1:pFiXMva/K5c/blSpJXy+p37srAPG8YjbHObQ8oMZzms=
 github.com/google/gofuzz v1.0.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=
 github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM=
 github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHmT4TnhNGBo=
+github.com/lemon-mint/envaddr v0.0.0-20220115112619-b1acf77f317e h1:WHTlxOrYAnJkd+5dFnSIWA2+mAdgpUlChJpzjnNrSGE=
+github.com/lemon-mint/envaddr v0.0.0-20220115112619-b1acf77f317e/go.mod h1:kzf0S/z9swcXpeo2+e1fY63g5/ZfIop37MgBmXLmDL0=
 github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
 github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd h1:TRLaZ9cD/w8PVh93nsPXa1VrQ6jlwL5oN8l14QlcNfg=
 github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=

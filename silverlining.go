@@ -2,15 +2,10 @@ package silverlining
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"log"
 	"net"
-	"strconv"
 	"sync"
-	"sync/atomic"
-	"time"
-	"unsafe"
 
 	"github.com/go-www/h1"
 )
@@ -25,52 +20,22 @@ const (
 )
 
 type Server struct {
-	Listener   net.Listener // Listener for incoming connections
-	ServerName string       // Server Header (default: "SilverLining")
+	Listener net.Listener // Listener for incoming connections
 
 	MaxBodySize int64 // Max body size (default: 2MB)
 
 	Handler Handler // Handler to invoke for each request
 
-	serverTime *[]byte // Server time RFC1123
-
 	serverStatus uint8 // Server status (stoped: 0, starting: 1, running: 2, stopping: 3)
-}
-
-var serverHeaderBytes []byte = []byte("Server: ")
-
-func (s *Server) serverTimeWorker() {
-	var ts [16][]byte
-	for i := 0; i < len(ts); i++ {
-		ts[i] = make([]byte, 0, (len("Date: Mon, 02 Jan 2006 15:04:05 MST\r\nServer: ")+len(s.ServerName))*2)
-		ts[i] = ts[i][:0]
-		ts[i] = time.Now().UTC().AppendFormat(ts[i], "Date: Mon, 02 Jan 2006 15:04:05 MST\r\n")
-	}
-
-	var i int
-
-	for {
-		i = (i + 1) & 15
-
-		ts[i] = ts[i][:0]
-		ts[i] = time.Now().UTC().AppendFormat(ts[i], "Date: Mon, 02 Jan 2006 15:04:05 MST\r\n")
-		ts[i] = append(ts[i], serverHeaderBytes...)
-		ts[i] = append(ts[i], s.ServerName...)
-		ts[i] = append(ts[i], '\r', '\n')
-		atomic.StorePointer((*unsafe.Pointer)(unsafe.Pointer(&s.serverTime)), unsafe.Pointer(&ts[i]))
-		time.Sleep(time.Second * 5) // Migrate Cache Timing Attack
-
-		if s.serverStatus == ServerStopping {
-			return
-		}
-	}
 }
 
 func (s *Server) Serve(l net.Listener) error {
 	s.serverStatus = ServerStarting
 	s.Listener = l
 
-	go s.serverTimeWorker()
+	if s.MaxBodySize == 0 {
+		s.MaxBodySize = 2 * 1024 * 1024
+	}
 
 	for {
 		conn, err := l.Accept()
@@ -97,89 +62,59 @@ var BufWriterPool sync.Pool = sync.Pool{
 	},
 }
 
+var buffer8kPool sync.Pool = sync.Pool{
+	New: func() interface{} {
+		v := make([]byte, 8*1024)
+		return &v
+	},
+}
+
+func getBuffer8k() *[]byte {
+	return buffer8kPool.Get().(*[]byte)
+}
+
+func putBuffer8k(b *[]byte) {
+	*b = (*b)[:cap(*b)]
+	buffer8kPool.Put(b)
+}
 func (s *Server) ServeConn(conn net.Conn) {
-	var err error
-
 	defer conn.Close()
-	ctx := GetRequestContext()
-	defer PutRequestContext(ctx)
 
-	ctx.r.Reset(conn)
-	ctx.w.Reset(conn)
-	ctx.conn = conn
+	readBuffer := getBuffer8k()
+	defer putBuffer8k(readBuffer)
 
-	fill := func() error {
-		var n int
-		n = copy(ctx.headerBuffer, ctx.next)
-		ctx.next = ctx.headerBuffer[:n]
-		n, err = ctx.r.Read(ctx.headerBuffer[n:])
-		if err != nil {
-			return err
-		}
-		ctx.next = ctx.headerBuffer[:n]
-		return nil
+	reqCtx := GetRequestContext(conn)
+	defer PutRequestContext(reqCtx)
+	reqCtx.server = s
+	reqCtx.conn = conn
+	reqCtx.reqR = h1.RequestReader{
+		R:          conn,
+		ReadBuffer: *readBuffer,
+		NextBuffer: nil,
+		Request:    h1.Request{},
 	}
 
 	for {
-		err = func() error {
-			var err error
-
-			ctx.next, err = h1.ParseRequestLine(&ctx.request, ctx.next)
-			if err != nil {
-				if err == h1.ErrBufferTooSmall {
-					err = fill()
-					if err != nil {
-						return err
-					}
-					ctx.next, err = h1.ParseRequestLine(&ctx.request, ctx.next)
-					if err != nil {
-						return err
-					}
-				}
-				return err
-			}
-
-			ctx.next, err = h1.ParseHeaders(&ctx.request, ctx.next)
-			if err != nil {
-				if err == h1.ErrBufferTooSmall {
-					err = fill()
-					if err != nil {
-						return err
-					}
-					ctx.next, err = h1.ParseRequestLine(&ctx.request, ctx.next)
-					if err != nil {
-						return err
-					}
-					ctx.next, err = h1.ParseHeaders(&ctx.request, ctx.next)
-					if err != nil {
-						return err
-					}
-				}
-				return err
-			}
-
-			ctx.response.reset()
-			s.Handler(ctx)
-
-			return nil
-		}()
+		_, err := reqCtx.reqR.Next()
 		if err != nil {
-			log.Printf("[ERROR] %s", err)
+			if err == io.EOF {
+				log.Println("EOF")
+				return
+			}
+			log.Println(err)
 			return
 		}
 
-		if ctx.r.Buffered() <= 0 {
-			err = ctx.w.Flush()
+		s.Handler(reqCtx)
+
+		if reqCtx.reqR.Remaining() == 0 {
+			err = reqCtx.respW.Flush()
 			if err != nil {
-				log.Printf("[ERROR] %s", err)
+				log.Println(err)
 				return
 			}
 		}
 	}
-}
-
-func (r *RequestContext) Write(p []byte) (n int, err error) {
-	return r.w.Write(p)
 }
 
 type Method = h1.Method
@@ -200,23 +135,79 @@ const (
 type RequestContext struct {
 	server *Server
 
-	request  h1.Request
 	response Response
+	hwt      bool
+	br       *h1.BodyReader
 
-	r *bufio.Reader
-	w *bufio.Writer
+	respW *h1.Response
+	reqR  h1.RequestReader
 
 	conn net.Conn
+}
 
-	headerBuffer []byte
-	next         []byte // sub slice of headerBuffer ReqeustContext.headerBuffer[headerEnd:]
+func (rctx *RequestContext) Write(p []byte) (n int, err error) {
+	rctx.WriteHeader(rctx.response.StatusCode)
+	return rctx.respW.Write(p)
+}
+
+func (rctx *RequestContext) WriteHeader(status int) {
+	if !rctx.hwt {
+		rctx.response.StatusCode = status
+		rctx.hwt = true
+		rctx.respW.WriteHeader(rctx.response.StatusCode)
+		err := rctx.writeUserHeader()
+		if err != nil {
+			log.Println(err)
+		}
+		_, err = rctx.respW.Write(crlf)
+		if err != nil {
+			log.Println(err)
+		}
+	}
+}
+
+var headersep = []byte(": ")
+var crlf = []byte("\r\n")
+
+func (rctx *RequestContext) writeUserHeader() error {
+	for i := range rctx.response.Headers {
+		if !rctx.response.Headers[i].Disabled {
+			_, err := rctx.respW.WriteString(rctx.response.Headers[i].Name)
+			if err != nil {
+				return err
+			}
+			_, err = rctx.respW.Write(headersep)
+			if err != nil {
+				return err
+			}
+			_, err = rctx.respW.WriteString(rctx.response.Headers[i].Value)
+			if err != nil {
+				return err
+			}
+			_, err = rctx.respW.Write(crlf)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (rctx *RequestContext) BodyReader() *h1.BodyReader {
+	if rctx.br == nil {
+		rctx.br = rctx.reqR.Body()
+	}
+	return rctx.br
+}
+func (rctx *RequestContext) CloseBodyReader() {
+	if rctx.br != nil {
+		h1.PutBodyReader(rctx.br)
+		rctx.br = nil
+	}
 }
 
 type Response struct {
 	StatusCode int
-
-	ContentLength      int
-	ContentLengthBytes []byte
 
 	Headers []Header
 }
@@ -229,31 +220,33 @@ type Header struct {
 }
 
 func (resp *Response) reset() {
-	resp.StatusCode = 0
-	resp.ContentLength = -1
-	resp.ContentLengthBytes = resp.ContentLengthBytes[:0]
+	resp.StatusCode = 200
 	resp.Headers = resp.Headers[:0]
 }
 
-func (r *RequestContext) SetHeader(name, value string) {
-	for i := range r.response.Headers {
-		if r.response.Headers[i].Name == name {
-			r.response.Headers[i].Disabled = false
-			r.response.Headers[i].Value = value
+func (rctx *RequestContext) SetContentLength(length int) {
+	rctx.respW.ContentLength = length
+}
+
+func (rctx *RequestContext) SetHeader(name, value string) {
+	for i := range rctx.response.Headers {
+		if rctx.response.Headers[i].Name == name {
+			rctx.response.Headers[i].Disabled = false
+			rctx.response.Headers[i].Value = value
 			return
 		}
 	}
-	r.response.Headers = append(r.response.Headers, Header{
+	rctx.response.Headers = append(rctx.response.Headers, Header{
 		Disabled: false,
 		Name:     name,
 		Value:    value,
 	})
 }
 
-func (r *RequestContext) DeleteHeader(name string) {
-	for i := range r.response.Headers {
-		if r.response.Headers[i].Name == name {
-			r.response.Headers[i].Disabled = true
+func (rctx *RequestContext) DeleteHeader(name string) {
+	for i := range rctx.response.Headers {
+		if rctx.response.Headers[i].Name == name {
+			rctx.response.Headers[i].Disabled = true
 			return
 		}
 	}
@@ -261,160 +254,32 @@ func (r *RequestContext) DeleteHeader(name string) {
 
 var requestPool = sync.Pool{
 	New: func() interface{} {
-		return &RequestContext{
-			headerBuffer: make([]byte, 0, 4096),
-			r:            bufio.NewReader(drw),
-			w:            bufio.NewWriter(drw),
-		}
+		v := new(RequestContext)
+		return v
 	},
 }
 
-func GetRequestContext() *RequestContext {
-	return requestPool.Get().(*RequestContext)
+func GetRequestContext(upstream io.Writer) *RequestContext {
+	ctx := requestPool.Get().(*RequestContext)
+	ctx.respW = h1.GetResponse(upstream)
+	return ctx
 }
 
 func PutRequestContext(ctx *RequestContext) {
-	ctx.reset()
+	ctx.resetHard()
 	requestPool.Put(ctx)
 }
 
-func (r *RequestContext) reset() {
-	r.server = nil
-	r.request.Reset()
-	r.response.reset()
-	r.r.Reset(drw)
-	r.w.Reset(drw)
-	r.conn = nil
-	r.headerBuffer = r.headerBuffer[:0]
-	r.next = nil // set to nil
+func (rctx *RequestContext) resetSoft() {
+	rctx.hwt = false
+	rctx.CloseBodyReader()
+	rctx.response.reset()
 }
 
-type BodyReader struct {
-	upstream io.Reader
-
-	availableBytes int64
-	readBytes      int64
-
-	hcur int
-	h    []byte
-}
-
-// BodyReader is only valid until the request is done.
-// Note: This function must be called only once.
-func (r *RequestContext) BodyReader() BodyReader {
-	return BodyReader{
-		upstream:       r.r,
-		availableBytes: r.request.ContentLength,
-		readBytes:      0,
-		hcur:           0,
-		h:              r.next,
-	}
-}
-
-func (r *BodyReader) Available() int64 {
-	return r.availableBytes
-}
-
-// Read reads from the BodyReader.
-// It is only valid until the request is done.
-// Note: This Function is not thread safe.
-func (r *BodyReader) Read(p []byte) (n int, err error) {
-	if r.availableBytes <= 0 {
-		return 0, io.EOF
-	}
-
-	if r.availableBytes < int64(len(p)) {
-		p = p[:r.availableBytes]
-	}
-
-	if r.hcur < len(r.h) {
-		n = copy(p, r.h[r.hcur:])
-		r.hcur += n
-		r.availableBytes -= int64(n)
-		return
-	}
-
-	n, err = r.upstream.Read(p)
-	r.availableBytes -= int64(n)
-	return
-}
-
-var ErrBodyTooLarge = fmt.Errorf("body too large")
-
-// FullBody returns the full body of the request.
-// For Big requests, Use BodyReader instead.
-// Body only valid until the request is done.
-// Note: This Function is not thread safe.
-func (r *RequestContext) Body() ([]byte, error) {
-	if r.request.ContentLength <= 0 {
-		return nil, nil
-	}
-
-	if r.request.ContentLength > r.server.MaxBodySize {
-		return nil, ErrBodyTooLarge
-	}
-
-	if r.next != nil && len(r.next) >= int(r.request.ContentLength) {
-		return r.next[:r.request.ContentLength], nil
-	}
-
-	buffer := make([]byte, r.request.ContentLength)
-	reader := r.BodyReader()
-	_, err := io.ReadAtLeast(&reader, buffer, int(r.request.ContentLength))
-	return buffer, err
-}
-
-var contentLengthHeader = []byte("Content-Length: ")
-var crlf = []byte("\r\n")
-
-func (r *RequestContext) SetContentLength(length int) {
-	r.request.ContentLength = int64(length)
-}
-
-func (r *RequestContext) WriteHeader(status int) error {
-	_, err := r.w.Write(GetStatusLine(status))
-	if err != nil {
-		return err
-	}
-	_, err = r.w.Write(*r.server.serverTime)
-	if err != nil {
-		return err
-	}
-
-	// Write Content-Length
-	if r.request.ContentLength >= 0 {
-		_, err = r.w.Write(contentLengthHeader)
-		if err != nil {
-			return err
-		}
-		r.response.ContentLengthBytes = strconv.AppendInt(r.response.ContentLengthBytes, r.request.ContentLength, 10)
-		r.response.ContentLengthBytes = append(r.response.ContentLengthBytes, crlf...)
-		_, err = r.w.Write(r.response.ContentLengthBytes)
-		if err != nil {
-			return err
-		}
-	}
-
-	for _, header := range r.response.Headers {
-		if header.Disabled {
-			continue
-		}
-		_, err = r.w.WriteString(header.Name)
-		if err != nil {
-			return err
-		}
-		_, err = r.w.WriteString(": ")
-		if err != nil {
-			return err
-		}
-		_, err = r.w.WriteString(header.Value)
-		if err != nil {
-			return err
-		}
-		_, err = r.w.WriteString("\r\n")
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+func (rctx *RequestContext) resetHard() {
+	rctx.resetSoft()
+	rctx.conn = nil
+	rctx.server = nil
+	rctx.reqR.Reset()
+	h1.PutResponse(rctx.respW)
 }
