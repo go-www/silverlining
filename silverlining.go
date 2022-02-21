@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/go-www/h1"
+	"github.com/go-www/silverlining/gopool"
 )
 
 type Handler func(r *RequestContext)
@@ -45,7 +46,9 @@ func (s *Server) Serve(l net.Listener) error {
 			return err
 		}
 
-		go s.ServeConn(conn)
+		gopool.Go(func() {
+			s.ServeConn(conn)
+		})
 	}
 }
 
