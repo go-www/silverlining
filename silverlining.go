@@ -219,10 +219,26 @@ func (rctx *RequestContext) CloseBodyReader() {
 	}
 }
 
+type ResponseType uint8
+
+const (
+	ResponseTypeNone ResponseType = iota
+	ResponseTypeFullBody
+	ResponseTypeStream
+	ResponseTypeHijack
+	ResponseTypeUser
+)
+
 type Response struct {
+	Headers []Header
+
+	// FullBody []byte    // for ResponseTypeFullBody
+	// Stream   io.Reader // for ResponseTypeStream
+	// Hijack   func() (io.ReadCloser, io.Writer)
+
 	StatusCode int
 
-	Headers []Header
+	// BodyType ResponseType
 }
 
 type Header struct {
@@ -235,6 +251,32 @@ type Header struct {
 func (resp *Response) reset() {
 	resp.StatusCode = 200
 	resp.Headers = resp.Headers[:0]
+}
+
+func (rctx *RequestContext) WriteFullBody(status int, body []byte) error {
+	rctx.response.StatusCode = status
+	rctx.SetContentLength(len(body))
+	_, err := rctx.Write(body)
+	return err
+}
+
+func (rctx *RequestContext) WriteStream(status int, stream io.Reader) error {
+	rctx.response.StatusCode = status
+	buf := getBuffer8k()
+	defer putBuffer8k(buf)
+	for {
+		n, err := stream.Read((*buf)[:cap(*buf)])
+		if err != nil {
+			if err == io.EOF {
+				return nil
+			}
+			return err
+		}
+		_, err = rctx.Write((*buf)[:n])
+		if err != nil {
+			return err
+		}
+	}
 }
 
 func (rctx *RequestContext) SetContentLength(length int) {
