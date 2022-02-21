@@ -11,16 +11,10 @@ func (r *RequestContext) ReadJSON(v any) error {
 	return json.NewDecoder(bodyReader).Decode(v)
 }
 
-func (r *RequestContext) WriteJSON(v any) error {
-	data, err := json.Marshal(v)
+func (r *RequestContext) WriteJSON(status int, v any) error {
+	encoded, err := json.Marshal(v)
 	if err != nil {
 		return err
 	}
-
-	r.SetHeader("Content-Type", "application/json")
-	r.SetContentLength(len(data))
-	r.WriteHeader(200)
-	r.Write(data)
-
-	return nil
+	return r.WriteFullBody(status, encoded)
 }
