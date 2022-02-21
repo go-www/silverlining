@@ -19,6 +19,8 @@ func (r *RequestContext) WriteAsJSON(v any) error {
 
 	r.SetHeader("Content-Type", "application/json")
 	r.SetContentLength(len(data))
+	r.WriteHeader(200)
+	r.Write(data)
 
 	return nil
 }

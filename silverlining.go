@@ -1,7 +1,6 @@
 package silverlining
 
 import (
-	"bufio"
 	"io"
 	"log"
 	"net"
@@ -50,18 +49,6 @@ func (s *Server) Serve(l net.Listener) error {
 	}
 }
 
-type dummyReadWriter struct{}
-
-func (d dummyReadWriter) Write(p []byte) (n int, err error) { return }
-func (d dummyReadWriter) Read(p []byte) (n int, err error)  { return }
-
-var drw = dummyReadWriter{}
-var BufWriterPool sync.Pool = sync.Pool{
-	New: func() interface{} {
-		return bufio.NewWriter(drw)
-	},
-}
-
 var buffer8kPool sync.Pool = sync.Pool{
 	New: func() interface{} {
 		v := make([]byte, 8*1024)
@@ -77,17 +64,38 @@ func putBuffer8k(b *[]byte) {
 	*b = (*b)[:cap(*b)]
 	buffer8kPool.Put(b)
 }
+
+type logConn struct {
+	c net.Conn
+}
+
+func (lc *logConn) Read(b []byte) (n int, err error) {
+	n, err = lc.c.Read(b)
+	log.Printf("Read: %d bytes\n", n)
+	log.Println(string(b[:n]))
+	return
+}
+
+func (lc *logConn) Write(b []byte) (n int, err error) {
+	log.Printf("Write: %d bytes\n", len(b))
+	log.Println(string(b))
+	return lc.c.Write(b)
+}
+
 func (s *Server) ServeConn(conn net.Conn) {
 	defer conn.Close()
 
 	readBuffer := getBuffer8k()
 	defer putBuffer8k(readBuffer)
 
+	//reqCtx := GetRequestContext(&logConn{conn})
 	reqCtx := GetRequestContext(conn)
 	defer PutRequestContext(reqCtx)
 	reqCtx.server = s
+	//reqCtx.conn = &logConn{conn}
 	reqCtx.conn = conn
 	reqCtx.reqR = h1.RequestReader{
+		//R: &logConn{conn},
 		R:          conn,
 		ReadBuffer: *readBuffer,
 		NextBuffer: nil,
@@ -104,8 +112,13 @@ func (s *Server) ServeConn(conn net.Conn) {
 			log.Println(err)
 			return
 		}
+		reqCtx.resetSoft()
+
+		//println("Request:", reqCtx.reqR.Request.Method, string(reqCtx.reqR.Request.URI))
 
 		s.Handler(reqCtx)
+
+		//println("Response:", reqCtx.response.StatusCode)
 
 		if reqCtx.reqR.Remaining() == 0 {
 			err = reqCtx.respW.Flush()
@@ -142,7 +155,7 @@ type RequestContext struct {
 	respW *h1.Response
 	reqR  h1.RequestReader
 
-	conn net.Conn
+	conn io.ReadWriter
 }
 
 func (rctx *RequestContext) Write(p []byte) (n int, err error) {
