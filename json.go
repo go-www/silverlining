@@ -6,12 +6,12 @@ import (
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
-func (r *RequestContext) ReadAsJSON(v any) error {
+func (r *RequestContext) ReadJSON(v any) error {
 	bodyReader := r.BodyReader()
 	return json.NewDecoder(bodyReader).Decode(v)
 }
 
-func (r *RequestContext) WriteAsJSON(v any) error {
+func (r *RequestContext) WriteJSON(v any) error {
 	data, err := json.Marshal(v)
 	if err != nil {
 		return err
