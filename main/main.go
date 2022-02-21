@@ -20,11 +20,17 @@ func main() {
 	srv := silverlining.Server{}
 
 	data := []byte("Hello, World!")
+	jsonData := map[string]string{"hello": "world"}
 
 	srv.Handler = func(r *silverlining.RequestContext) {
-		r.SetContentLength(len(data))
-		r.WriteHeader(200)
-		r.Write(data)
+		switch string(r.URI()) {
+		case "/":
+			r.WriteFullBody(200, data)
+		case "/json":
+			r.WriteJSON(200, jsonData)
+		default:
+			r.WriteFullBody(404, nil)
+		}
 	}
 
 	err = srv.Serve(ln)
