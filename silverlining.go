@@ -253,6 +253,10 @@ func (resp *Response) reset() {
 	resp.Headers = resp.Headers[:0]
 }
 
+func (resp *RequestContext) URI() []byte {
+	return resp.reqR.Request.URI
+}
+
 func (rctx *RequestContext) WriteFullBody(status int, body []byte) error {
 	rctx.response.StatusCode = status
 	rctx.SetContentLength(len(body))
