@@ -16,5 +16,6 @@ func (r *RequestContext) WriteJSON(status int, v any) error {
 	if err != nil {
 		return err
 	}
+	r.SetHeader("Content-Type", "application/json")
 	return r.WriteFullBody(status, encoded)
 }
