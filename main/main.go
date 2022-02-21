@@ -26,10 +26,12 @@ func main() {
 	srv.Handler = func(r *silverlining.RequestContext) {
 		switch string(r.URI()) {
 		case "/":
+			r.SetHeader("Content-Type", "text/plain")
 			r.WriteFullBody(200, data)
 		case "/json":
 			r.WriteJSON(200, jsonData)
 		case "/healthz":
+			r.SetHeader("Content-Type", "text/plain")
 			r.WriteFullBody(200, healthz)
 		default:
 			r.WriteFullBody(404, nil)
