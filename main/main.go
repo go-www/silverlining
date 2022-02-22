@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net"
+	"net/http"
 
 	"github.com/go-www/silverlining"
 	"github.com/lemon-mint/envaddr"
@@ -33,6 +34,8 @@ func main() {
 		case "/healthz":
 			r.SetHeader("Content-Type", "text/plain")
 			r.WriteFullBody(200, healthz)
+		case "/redirect":
+			r.Redirect(http.StatusSeeOther, "/")
 		default:
 			r.WriteFullBody(404, nil)
 		}
