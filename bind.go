@@ -13,7 +13,7 @@ func (rctx *RequestContext) BindJSON(v any) error {
 var ErrBindPtrError = errors.New("bind function's parameter must be a pointer")
 var ErrBindType = errors.New("bind type error")
 
-func (rctx *RequestContext) BindQuery(v any) error {
+func bindStruct(v any, stag string, src func(key string) (value string, found bool)) error {
 	s := reflect.ValueOf(v)
 	if s.Type().Kind() != reflect.Ptr {
 		return ErrBindPtrError
@@ -26,13 +26,13 @@ func (rctx *RequestContext) BindQuery(v any) error {
 	for i := 0; i < se.NumField(); i++ {
 		f := se.Field(i)
 		if f.CanSet() {
-			tag := se.Type().Field(i).Tag.Get("query")
+			tag := se.Type().Field(i).Tag.Get(stag)
 			if tag == "" {
 				continue
 			}
 
-			v, err := rctx.GetParam([]byte(tag))
-			if err != nil {
+			v, ok := src(tag)
+			if !ok {
 				continue
 			}
 
@@ -74,4 +74,15 @@ func (rctx *RequestContext) BindQuery(v any) error {
 	}
 
 	return nil
+}
+func (rctx *RequestContext) BindQuery(v any) error {
+	return bindStruct(v, "query", func(key string) (value string, found bool) {
+		value, err := rctx.GetParam([]byte(key))
+		if err != nil {
+			found = false
+			return
+		}
+		found = true
+		return
+	})
 }
