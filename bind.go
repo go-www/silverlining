@@ -84,6 +84,13 @@ func (rctx *RequestContext) BindQuery(v any) error {
 	})
 }
 
+func (rctx *RequestContext) BindHeader(v any) error {
+	return bindStruct(v, "header", func(key string) (value string, found bool) {
+		// TODO: support header bindings
+		return "", false
+	})
+}
+
 func (rctx *RequestContext) BindJSON(v any) error {
 	return rctx.ReadJSON(v)
 }
