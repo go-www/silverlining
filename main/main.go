@@ -36,6 +36,18 @@ func main() {
 			r.WriteFullBody(200, healthz)
 		case "/redirect":
 			r.Redirect(http.StatusSeeOther, "/")
+		case "/bind_query":
+			type User struct {
+				Name string `query:"name"`
+				Age  uint8  `query:"age"`
+			}
+			u := &User{}
+			if err := r.BindQuery(u); err != nil {
+				r.WriteJSONIndent(500, map[string]string{"error": err.Error()}, "", "  ")
+				return
+			}
+
+			r.WriteJSONIndent(200, u, "", "  ")
 		default:
 			r.WriteFullBody(404, nil)
 		}
