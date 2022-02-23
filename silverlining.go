@@ -260,6 +260,10 @@ func (resp *RequestContext) RawURI() []byte {
 	return resp.reqR.Request.RawURI
 }
 
+func (resp *RequestContext) Path() []byte {
+	return resp.reqR.Request.URI.Path()
+}
+
 func (rctx *RequestContext) WriteFullBody(status int, body []byte) error {
 	rctx.response.StatusCode = status
 	rctx.SetContentLength(len(body))

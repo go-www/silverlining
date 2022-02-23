@@ -25,7 +25,7 @@ func main() {
 	jsonData := map[string]string{"hello": "world"}
 
 	srv.Handler = func(r *silverlining.RequestContext) {
-		switch string(r.RawURI()) {
+		switch string(r.Path()) {
 		case "/":
 			r.SetHeader("Content-Type", "text/plain")
 			r.WriteFullBody(200, data)
