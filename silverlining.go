@@ -268,6 +268,10 @@ func (resp *RequestContext) Params() []h1.Query {
 	return resp.reqR.Request.URI.Query()
 }
 
+func (resp *RequestContext) GetParam(name []byte) (string, error) {
+	return resp.reqR.Request.URI.QueryValue(name)
+}
+
 func (rctx *RequestContext) WriteFullBody(status int, body []byte) error {
 	rctx.response.StatusCode = status
 	rctx.SetContentLength(len(body))
