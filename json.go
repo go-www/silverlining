@@ -19,3 +19,12 @@ func (r *RequestContext) WriteJSON(status int, v any) error {
 	r.SetHeader("Content-Type", "application/json")
 	return r.WriteFullBody(status, encoded)
 }
+
+func (r *RequestContext) WriteJSONIndent(status int, v any, prefix string, indent string) error {
+	encoded, err := json.MarshalIndent(v, prefix, indent)
+	if err != nil {
+		return err
+	}
+	r.SetHeader("Content-Type", "application/json")
+	return r.WriteFullBody(status, encoded)
+}
