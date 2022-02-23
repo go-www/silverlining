@@ -74,7 +74,7 @@ func bindStruct(v any, stag string, src func(key string) (value string, found bo
 
 func (rctx *RequestContext) BindQuery(v any) error {
 	return bindStruct(v, "query", func(key string) (value string, found bool) {
-		value, err := rctx.GetParam([]byte(key))
+		value, err := rctx.GetQueryParam([]byte(key))
 		if err != nil {
 			found = false
 			return

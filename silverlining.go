@@ -268,11 +268,11 @@ func (resp *RequestContext) Path() []byte {
 	return resp.reqR.Request.URI.Path()
 }
 
-func (resp *RequestContext) Params() []h1.Query {
+func (resp *RequestContext) QueryParams() []h1.Query {
 	return resp.reqR.Request.URI.Query()
 }
 
-func (resp *RequestContext) GetParam(name []byte) (string, error) {
+func (resp *RequestContext) GetQueryParam(name []byte) (string, error) {
 	return resp.reqR.Request.URI.QueryValue(name)
 }
 
