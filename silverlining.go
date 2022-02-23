@@ -256,8 +256,8 @@ func (resp *Response) reset() {
 	resp.Headers = resp.Headers[:0]
 }
 
-func (resp *RequestContext) URI() []byte {
-	return resp.reqR.Request.URI
+func (resp *RequestContext) RawURI() []byte {
+	return resp.reqR.Request.RawURI
 }
 
 func (rctx *RequestContext) WriteFullBody(status int, body []byte) error {
