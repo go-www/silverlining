@@ -264,6 +264,10 @@ func (resp *RequestContext) Path() []byte {
 	return resp.reqR.Request.URI.Path()
 }
 
+func (resp *RequestContext) Params() []h1.Query {
+	return resp.reqR.Request.URI.Query()
+}
+
 func (rctx *RequestContext) WriteFullBody(status int, body []byte) error {
 	rctx.response.StatusCode = status
 	rctx.SetContentLength(len(body))
