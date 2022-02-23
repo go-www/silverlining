@@ -68,6 +68,8 @@ func putBuffer8k(b *[]byte) {
 	buffer8kPool.Put(b)
 }
 
+/*
+
 type logConn struct {
 	c net.Conn
 }
@@ -84,6 +86,8 @@ func (lc *logConn) Write(b []byte) (n int, err error) {
 	log.Println(string(b))
 	return lc.c.Write(b)
 }
+
+*/
 
 func (s *Server) ServeConn(conn net.Conn) {
 	defer conn.Close()

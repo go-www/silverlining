@@ -6,10 +6,6 @@ import (
 	"strconv"
 )
 
-func (rctx *RequestContext) BindJSON(v any) error {
-	return rctx.ReadJSON(v)
-}
-
 var ErrBindPtrError = errors.New("bind function's parameter must be a pointer")
 var ErrBindType = errors.New("bind type error")
 
@@ -75,6 +71,7 @@ func bindStruct(v any, stag string, src func(key string) (value string, found bo
 
 	return nil
 }
+
 func (rctx *RequestContext) BindQuery(v any) error {
 	return bindStruct(v, "query", func(key string) (value string, found bool) {
 		value, err := rctx.GetParam([]byte(key))
@@ -85,4 +82,8 @@ func (rctx *RequestContext) BindQuery(v any) error {
 		found = true
 		return
 	})
+}
+
+func (rctx *RequestContext) BindJSON(v any) error {
+	return rctx.ReadJSON(v)
 }
