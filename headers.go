@@ -1,7 +1,7 @@
 package silverlining
 
 type ResponseHeaders struct {
-	v *RequestContext
+	v *Context
 }
 
 func (r ResponseHeaders) Set(name, value string) {
@@ -12,29 +12,29 @@ func (r ResponseHeaders) Del(name string) {
 	r.v.deleteHeader(name)
 }
 
-func (rctx *RequestContext) ResponseHeaders() ResponseHeaders {
-	return ResponseHeaders{rctx}
+func (r *Context) ResponseHeaders() ResponseHeaders {
+	return ResponseHeaders{r}
 }
 
-func (rctx *RequestContext) setHeader(name, value string) {
-	for i := range rctx.response.Headers {
-		if rctx.response.Headers[i].Name == name {
-			rctx.response.Headers[i].Disabled = false
-			rctx.response.Headers[i].Value = value
+func (r *Context) setHeader(name, value string) {
+	for i := range r.response.Headers {
+		if r.response.Headers[i].Name == name {
+			r.response.Headers[i].Disabled = false
+			r.response.Headers[i].Value = value
 			return
 		}
 	}
-	rctx.response.Headers = append(rctx.response.Headers, Header{
+	r.response.Headers = append(r.response.Headers, Header{
 		Disabled: false,
 		Name:     name,
 		Value:    value,
 	})
 }
 
-func (rctx *RequestContext) deleteHeader(name string) {
-	for i := range rctx.response.Headers {
-		if rctx.response.Headers[i].Name == name {
-			rctx.response.Headers[i].Disabled = true
+func (r *Context) deleteHeader(name string) {
+	for i := range r.response.Headers {
+		if r.response.Headers[i].Name == name {
+			r.response.Headers[i].Disabled = true
 			return
 		}
 	}

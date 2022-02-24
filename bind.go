@@ -72,9 +72,9 @@ func bindStruct(v any, stag string, src func(key string) (value string, found bo
 	return nil
 }
 
-func (rctx *RequestContext) BindQuery(v any) error {
+func (r *Context) BindQuery(v any) error {
 	return bindStruct(v, "query", func(key string) (value string, found bool) {
-		value, err := rctx.GetQueryParam([]byte(key))
+		value, err := r.GetQueryParam([]byte(key))
 		if err != nil {
 			found = false
 			return
@@ -84,13 +84,13 @@ func (rctx *RequestContext) BindQuery(v any) error {
 	})
 }
 
-func (rctx *RequestContext) BindHeader(v any) error {
+func (r *Context) BindHeader(v any) error {
 	return bindStruct(v, "header", func(key string) (value string, found bool) {
 		// TODO: support header bindings
 		return "", false
 	})
 }
 
-func (rctx *RequestContext) BindJSON(v any) error {
-	return rctx.ReadJSON(v)
+func (r *Context) BindJSON(v any) error {
+	return r.ReadJSON(v)
 }

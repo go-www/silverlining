@@ -24,7 +24,7 @@ func main() {
 	healthz := []byte("OK")
 	jsonData := map[string]string{"hello": "world"}
 
-	srv.Handler = func(r *silverlining.RequestContext) {
+	srv.Handler = func(r *silverlining.Context) {
 		switch string(r.Path()) {
 		case "/":
 			r.ResponseHeaders().Set("Content-Type", "text/plain")

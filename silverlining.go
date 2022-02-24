@@ -10,7 +10,7 @@ import (
 	"github.com/go-www/silverlining/gopool"
 )
 
-type Handler func(r *RequestContext)
+type Handler func(r *Context)
 
 const (
 	ServerStoped uint8 = iota
@@ -152,7 +152,7 @@ const (
 	MethodBREW    = h1.MethodBREW
 )
 
-type RequestContext struct {
+type Context struct {
 	server *Server
 
 	response Response
@@ -165,21 +165,21 @@ type RequestContext struct {
 	conn io.ReadWriter
 }
 
-func (rctx *RequestContext) Write(p []byte) (n int, err error) {
-	rctx.WriteHeader(rctx.response.StatusCode)
-	return rctx.respW.Write(p)
+func (r *Context) Write(p []byte) (n int, err error) {
+	r.WriteHeader(r.response.StatusCode)
+	return r.respW.Write(p)
 }
 
-func (rctx *RequestContext) WriteHeader(status int) {
-	if !rctx.hwt {
-		rctx.response.StatusCode = status
-		rctx.hwt = true
-		rctx.respW.WriteHeader(rctx.response.StatusCode)
-		err := rctx.writeUserHeader()
+func (r *Context) WriteHeader(status int) {
+	if !r.hwt {
+		r.response.StatusCode = status
+		r.hwt = true
+		r.respW.WriteHeader(r.response.StatusCode)
+		err := r.writeUserHeader()
 		if err != nil {
 			log.Println(err)
 		}
-		_, err = rctx.respW.Write(crlf)
+		_, err = r.respW.Write(crlf)
 		if err != nil {
 			log.Println(err)
 		}
@@ -189,22 +189,22 @@ func (rctx *RequestContext) WriteHeader(status int) {
 var headersep = []byte(": ")
 var crlf = []byte("\r\n")
 
-func (rctx *RequestContext) writeUserHeader() error {
-	for i := range rctx.response.Headers {
-		if !rctx.response.Headers[i].Disabled {
-			_, err := rctx.respW.WriteString(rctx.response.Headers[i].Name)
+func (r *Context) writeUserHeader() error {
+	for i := range r.response.Headers {
+		if !r.response.Headers[i].Disabled {
+			_, err := r.respW.WriteString(r.response.Headers[i].Name)
 			if err != nil {
 				return err
 			}
-			_, err = rctx.respW.Write(headersep)
+			_, err = r.respW.Write(headersep)
 			if err != nil {
 				return err
 			}
-			_, err = rctx.respW.WriteString(rctx.response.Headers[i].Value)
+			_, err = r.respW.WriteString(r.response.Headers[i].Value)
 			if err != nil {
 				return err
 			}
-			_, err = rctx.respW.Write(crlf)
+			_, err = r.respW.Write(crlf)
 			if err != nil {
 				return err
 			}
@@ -213,16 +213,16 @@ func (rctx *RequestContext) writeUserHeader() error {
 	return nil
 }
 
-func (rctx *RequestContext) BodyReader() *h1.BodyReader {
-	if rctx.br == nil {
-		rctx.br = rctx.reqR.Body()
+func (r *Context) BodyReader() *h1.BodyReader {
+	if r.br == nil {
+		r.br = r.reqR.Body()
 	}
-	return rctx.br
+	return r.br
 }
-func (rctx *RequestContext) CloseBodyReader() {
-	if rctx.br != nil {
-		h1.PutBodyReader(rctx.br)
-		rctx.br = nil
+func (r *Context) CloseBodyReader() {
+	if r.br != nil {
+		h1.PutBodyReader(r.br)
+		r.br = nil
 	}
 }
 
@@ -260,31 +260,31 @@ func (resp *Response) reset() {
 	resp.Headers = resp.Headers[:0]
 }
 
-func (resp *RequestContext) RawURI() []byte {
+func (resp *Context) RawURI() []byte {
 	return resp.reqR.Request.RawURI
 }
 
-func (resp *RequestContext) Path() []byte {
+func (resp *Context) Path() []byte {
 	return resp.reqR.Request.URI.Path()
 }
 
-func (resp *RequestContext) QueryParams() []h1.Query {
+func (resp *Context) QueryParams() []h1.Query {
 	return resp.reqR.Request.URI.Query()
 }
 
-func (resp *RequestContext) GetQueryParam(name []byte) (string, error) {
+func (resp *Context) GetQueryParam(name []byte) (string, error) {
 	return resp.reqR.Request.URI.QueryValue(name)
 }
 
-func (rctx *RequestContext) WriteFullBody(status int, body []byte) error {
-	rctx.response.StatusCode = status
-	rctx.SetContentLength(len(body))
-	_, err := rctx.Write(body)
+func (r *Context) WriteFullBody(status int, body []byte) error {
+	r.response.StatusCode = status
+	r.SetContentLength(len(body))
+	_, err := r.Write(body)
 	return err
 }
 
-func (rctx *RequestContext) WriteStream(status int, stream io.Reader) error {
-	rctx.response.StatusCode = status
+func (r *Context) WriteStream(status int, stream io.Reader) error {
+	r.response.StatusCode = status
 	buf := getBuffer8k()
 	defer putBuffer8k(buf)
 	for {
@@ -295,45 +295,45 @@ func (rctx *RequestContext) WriteStream(status int, stream io.Reader) error {
 			}
 			return err
 		}
-		_, err = rctx.Write((*buf)[:n])
+		_, err = r.Write((*buf)[:n])
 		if err != nil {
 			return err
 		}
 	}
 }
 
-func (rctx *RequestContext) SetContentLength(length int) {
-	rctx.respW.ContentLength = length
+func (r *Context) SetContentLength(length int) {
+	r.respW.ContentLength = length
 }
 
 var requestPool = sync.Pool{
 	New: func() interface{} {
-		v := new(RequestContext)
+		v := new(Context)
 		return v
 	},
 }
 
-func GetRequestContext(upstream io.Writer) *RequestContext {
-	ctx := requestPool.Get().(*RequestContext)
+func GetRequestContext(upstream io.Writer) *Context {
+	ctx := requestPool.Get().(*Context)
 	ctx.respW = h1.GetResponse(upstream)
 	return ctx
 }
 
-func PutRequestContext(ctx *RequestContext) {
+func PutRequestContext(ctx *Context) {
 	ctx.resetHard()
 	requestPool.Put(ctx)
 }
 
-func (rctx *RequestContext) resetSoft() {
-	rctx.hwt = false
-	rctx.CloseBodyReader()
-	rctx.response.reset()
+func (r *Context) resetSoft() {
+	r.hwt = false
+	r.CloseBodyReader()
+	r.response.reset()
 }
 
-func (rctx *RequestContext) resetHard() {
-	rctx.resetSoft()
-	rctx.conn = nil
-	rctx.server = nil
-	rctx.reqR.Reset()
-	h1.PutResponse(rctx.respW)
+func (r *Context) resetHard() {
+	r.resetSoft()
+	r.conn = nil
+	r.server = nil
+	r.reqR.Reset()
+	h1.PutResponse(r.respW)
 }
