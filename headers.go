@@ -1,19 +1,19 @@
 package silverlining
 
-type ResponseHeader struct {
+type ResponseHeaders struct {
 	v *RequestContext
 }
 
-func (r ResponseHeader) Set(name, value string) {
+func (r ResponseHeaders) Set(name, value string) {
 	r.v.setHeader(name, value)
 }
 
-func (r ResponseHeader) Del(name string) {
+func (r ResponseHeaders) Del(name string) {
 	r.v.deleteHeader(name)
 }
 
-func (rctx *RequestContext) ResponseHeaders() ResponseHeader {
-	return ResponseHeader{rctx}
+func (rctx *RequestContext) ResponseHeaders() ResponseHeaders {
+	return ResponseHeaders{rctx}
 }
 
 func (rctx *RequestContext) setHeader(name, value string) {
