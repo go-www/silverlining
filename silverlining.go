@@ -195,7 +195,7 @@ type Context struct {
 	respW *h1.Response
 	reqR  h1.RequestReader
 
-	conn io.ReadWriter
+	conn io.ReadWriteCloser
 
 	hijack bool
 }
@@ -372,4 +372,8 @@ func (r *Context) resetHard() {
 	r.server = nil
 	r.reqR.Reset()
 	h1.PutResponse(r.respW)
+}
+
+func (r *Context) HijackConn() io.ReadWriteCloser {
+	return r.conn
 }
