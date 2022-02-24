@@ -85,10 +85,7 @@ func (r *Context) BindQuery(v any) error {
 }
 
 func (r *Context) BindHeader(v any) error {
-	return bindStruct(v, "header", func(key string) (value string, found bool) {
-		// TODO: support header bindings
-		return "", false
-	})
+	return bindStruct(v, "header", r.RequestHeaders().Get)
 }
 
 func (r *Context) BindJSON(v any) error {
