@@ -90,14 +90,33 @@ func (lc *logConn) Write(b []byte) (n int, err error) {
 */
 
 func (s *Server) ServeConn(conn net.Conn) {
-	defer conn.Close()
+	var hijack bool
+
+	defer func() {
+		if hijack {
+			return
+		}
+		conn.Close()
+	}()
 
 	readBuffer := getBuffer8k()
-	defer putBuffer8k(readBuffer)
+	//defer putBuffer8k(readBuffer)
+	defer func() {
+		if hijack {
+			return
+		}
+		putBuffer8k(readBuffer)
+	}()
 
 	//reqCtx := GetRequestContext(&logConn{conn})
 	reqCtx := GetRequestContext(conn)
-	defer PutRequestContext(reqCtx)
+	//defer PutRequestContext(reqCtx)
+	defer func() {
+		if hijack {
+			return
+		}
+		PutRequestContext(reqCtx)
+	}()
 	reqCtx.server = s
 	//reqCtx.conn = &logConn{conn}
 	reqCtx.conn = conn
@@ -124,6 +143,20 @@ func (s *Server) ServeConn(conn net.Conn) {
 		//println("Request:", reqCtx.reqR.Request.Method, string(reqCtx.reqR.Request.URI))
 
 		s.Handler(reqCtx)
+		hijack = reqCtx.hijack
+
+		if hijack {
+			return
+		}
+
+		if reqCtx.respW.ContentLength == -1 {
+			err = reqCtx.respW.Flush()
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			return
+		}
 
 		//println("Response:", reqCtx.response.StatusCode)
 
@@ -163,6 +196,8 @@ type Context struct {
 	reqR  h1.RequestReader
 
 	conn io.ReadWriter
+
+	hijack bool
 }
 
 func (r *Context) Write(p []byte) (n int, err error) {
@@ -326,6 +361,7 @@ func PutRequestContext(ctx *Context) {
 
 func (r *Context) resetSoft() {
 	r.hwt = false
+	r.hijack = false
 	r.CloseBodyReader()
 	r.response.reset()
 }
