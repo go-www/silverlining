@@ -16,7 +16,7 @@ func (r *RequestContext) WriteJSON(status int, v any) error {
 	if err != nil {
 		return err
 	}
-	r.SetHeader("Content-Type", "application/json")
+	r.ResponseHeaders().Set("Content-Type", "application/json")
 	return r.WriteFullBody(status, encoded)
 }
 
@@ -25,6 +25,6 @@ func (r *RequestContext) WriteJSONIndent(status int, v any, prefix string, inden
 	if err != nil {
 		return err
 	}
-	r.SetHeader("Content-Type", "application/json")
+	r.ResponseHeaders().Set("Content-Type", "application/json")
 	return r.WriteFullBody(status, encoded)
 }

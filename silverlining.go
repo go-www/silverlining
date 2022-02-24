@@ -306,30 +306,6 @@ func (rctx *RequestContext) SetContentLength(length int) {
 	rctx.respW.ContentLength = length
 }
 
-func (rctx *RequestContext) SetHeader(name, value string) {
-	for i := range rctx.response.Headers {
-		if rctx.response.Headers[i].Name == name {
-			rctx.response.Headers[i].Disabled = false
-			rctx.response.Headers[i].Value = value
-			return
-		}
-	}
-	rctx.response.Headers = append(rctx.response.Headers, Header{
-		Disabled: false,
-		Name:     name,
-		Value:    value,
-	})
-}
-
-func (rctx *RequestContext) DeleteHeader(name string) {
-	for i := range rctx.response.Headers {
-		if rctx.response.Headers[i].Name == name {
-			rctx.response.Headers[i].Disabled = true
-			return
-		}
-	}
-}
-
 var requestPool = sync.Pool{
 	New: func() interface{} {
 		v := new(RequestContext)

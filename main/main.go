@@ -27,12 +27,12 @@ func main() {
 	srv.Handler = func(r *silverlining.RequestContext) {
 		switch string(r.Path()) {
 		case "/":
-			r.SetHeader("Content-Type", "text/plain")
+			r.ResponseHeaders().Set("Content-Type", "text/plain")
 			r.WriteFullBody(200, data)
 		case "/json":
 			r.WriteJSON(200, jsonData)
 		case "/healthz":
-			r.SetHeader("Content-Type", "text/plain")
+			r.ResponseHeaders().Set("Content-Type", "text/plain")
 			r.WriteFullBody(200, healthz)
 		case "/redirect":
 			r.Redirect(http.StatusSeeOther, "/")
