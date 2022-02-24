@@ -39,3 +39,35 @@ func (r *Context) deleteHeader(name string) {
 		}
 	}
 }
+
+type RequestHeaders struct {
+	v *Context
+}
+
+func (r RequestHeaders) Get(name string) (string, bool) {
+	return r.v.getHeader(name)
+}
+
+func (r RequestHeaders) GetBytes(name []byte) ([]byte, bool) {
+	return r.v.getHeaderBytes(name)
+}
+
+func (r *Context) RequestHeaders() RequestHeaders {
+	return RequestHeaders{r}
+}
+
+func (r *Context) getHeader(name string) (string, bool) {
+	h, ok := r.reqR.Request.GetHeader(stringToBytes(name))
+	if !ok {
+		return "", false
+	}
+	return bytesToString(h.RawValue), true
+}
+
+func (r *Context) getHeaderBytes(name []byte) ([]byte, bool) {
+	h, ok := r.reqR.Request.GetHeader(name)
+	if !ok {
+		return nil, false
+	}
+	return h.RawValue, true
+}
