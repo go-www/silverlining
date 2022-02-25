@@ -373,3 +373,7 @@ func (r *Context) HijackConn() (bufR h1.HijackReader, bufW *h1.Response, conn ne
 func (r *Context) Method() h1.Method {
 	return r.reqR.Request.Method
 }
+
+func (r *Context) ConnectionClose() {
+	r.SetContentLength(-1)
+}

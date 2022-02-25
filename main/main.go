@@ -78,6 +78,7 @@ func main() {
 		case "/httpbin/get":
 			if r.Method() != h1.MethodGET {
 				r.WriteFullBodyString(http.StatusMethodNotAllowed, "Method not allowed")
+				r.ConnectionClose()
 				return
 			}
 
