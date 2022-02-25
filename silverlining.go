@@ -71,6 +71,7 @@ func putBuffer8k(b *[]byte) {
 	buffer8kPool.Put(b)
 }
 
+/*
 type logConn struct {
 	c net.Conn
 }
@@ -92,6 +93,7 @@ func (lc *logConn) Close() error {
 	log.Println("Close")
 	return lc.c.Close()
 }
+*/
 
 func (s *Server) ServeConn(conn net.Conn) {
 	var hijack bool
@@ -112,8 +114,8 @@ func (s *Server) ServeConn(conn net.Conn) {
 		putBuffer8k(readBuffer)
 	}()
 
-	reqCtx := GetRequestContext(&logConn{conn})
-	//reqCtx := GetRequestContext(conn)
+	//reqCtx := GetRequestContext(&logConn{conn})
+	reqCtx := GetRequestContext(conn)
 	//defer PutRequestContext(reqCtx)
 	defer func() {
 		if hijack {
@@ -122,11 +124,11 @@ func (s *Server) ServeConn(conn net.Conn) {
 		PutRequestContext(reqCtx)
 	}()
 	reqCtx.server = s
-	reqCtx.conn = &logConn{conn}
-	//reqCtx.conn = conn
+	//reqCtx.conn = &logConn{conn}
+	reqCtx.conn = conn
 	reqCtx.reqR = h1.RequestReader{
-		R: &logConn{conn},
-		//R:          conn,
+		//R: &logConn{conn},
+		R:          conn,
 		ReadBuffer: *readBuffer,
 		NextBuffer: nil,
 		Request:    h1.Request{},
