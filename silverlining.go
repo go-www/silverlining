@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"sync"
+	"time"
 
 	"github.com/go-www/h1"
 	"github.com/go-www/silverlining/gopool"
@@ -27,6 +28,8 @@ type Server struct {
 	Handler Handler // Handler to invoke for each request
 
 	serverStatus uint8 // Server status (stoped: 0, starting: 1, running: 2, stopping: 3)
+
+	ReadTimeout time.Duration
 }
 
 func (s *Server) Serve(l net.Listener) error {
@@ -129,6 +132,9 @@ func (s *Server) ServeConn(conn net.Conn) {
 	}
 
 	for {
+		if s.ReadTimeout > 0 {
+			conn.SetReadDeadline(time.Now().Add(s.ReadTimeout))
+		}
 		_, err := reqCtx.reqR.Next()
 		if err != nil {
 			if err == io.EOF {

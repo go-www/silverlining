@@ -18,7 +18,9 @@ func main() {
 
 	defer ln.Close()
 
-	srv := silverlining.Server{}
+	srv := silverlining.Server{
+		//ReadTimeout: time.Minute,
+	}
 
 	data := []byte("Hello, World!")
 	healthz := []byte("OK")
