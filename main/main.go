@@ -81,6 +81,12 @@ func main() {
 				return
 			}
 
+			Origin, ok := r.RequestHeaders().Get("Origin")
+			if !ok {
+				Origin = "*"
+			}
+			r.ResponseHeaders().Set("Access-Control-Allow-Origin", Origin)
+
 			qps := r.QueryParams()
 			hs := r.RequestHeaders().List()
 
