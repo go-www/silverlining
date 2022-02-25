@@ -82,11 +82,25 @@ func (r *Context) writeUpgradeWebSocket() error {
 // Upgrade the request to WebSocket protocol.
 // param:
 // 		op: the opcode to use for the WebSocket connection. (ws.OpText|ws.OpBinary)
-func (r *Context) UpgradeWebSocket(op ws.OpCode) (conn io.ReadWriteCloser, err error) {
+func (r *Context) UpgradeWebSocket(op ws.OpCode) (brwc io.ReadWriteCloser, err error) {
 	err = r.writeUpgradeWebSocket()
 	if err != nil {
 		return nil, err
 	}
-	conn = r.HijackConn()
+
+	bufR, _, conn := r.HijackConn()
+
+	type ReadWriteCloserConn struct {
+		io.Reader
+		io.Writer
+		io.Closer
+	}
+
+	brwc = ReadWriteCloserConn{
+		Reader: bufR,
+		Writer: conn,
+		Closer: conn,
+	}
+
 	return
 }

@@ -126,6 +126,7 @@ func (s *Server) ServeConn(conn net.Conn) {
 	reqCtx.server = s
 	//reqCtx.conn = &logConn{conn}
 	reqCtx.conn = conn
+	reqCtx.rawconn = conn
 	reqCtx.reqR = h1.RequestReader{
 		//R: &logConn{conn},
 		R:          conn,
@@ -141,7 +142,7 @@ func (s *Server) ServeConn(conn net.Conn) {
 		_, err := reqCtx.reqR.Next()
 		if err != nil {
 			if err == io.EOF {
-				log.Println("EOF")
+				//log.Println("EOF")
 				return
 			}
 			log.Println(err)
@@ -205,6 +206,8 @@ type Context struct {
 	reqR  h1.RequestReader
 
 	conn io.ReadWriteCloser
+
+	rawconn net.Conn
 
 	hijack bool
 }
@@ -344,7 +347,6 @@ func PutRequestContext(ctx *Context) {
 
 func (r *Context) resetSoft() {
 	r.hwt = false
-	r.hijack = false
 	r.CloseBodyReader()
 	r.response.reset()
 }
@@ -352,12 +354,18 @@ func (r *Context) resetSoft() {
 func (r *Context) resetHard() {
 	r.resetSoft()
 	r.conn = nil
+	r.rawconn = nil
 	r.server = nil
+	r.hijack = false
 	r.reqR.Reset()
 	h1.PutResponse(r.respW)
 }
 
-func (r *Context) HijackConn() io.ReadWriteCloser {
+func (r *Context) HijackConn() (bufR h1.HijackReader, bufW *h1.Response, conn net.Conn) {
+	bufR = r.reqR.Hijack()
+	bufW = r.respW
+	conn = r.rawconn
 	r.hijack = true
-	return r.conn
+
+	return
 }
