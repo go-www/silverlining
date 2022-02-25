@@ -13,7 +13,7 @@ func (r *Context) Body() ([]byte, error) {
 	}
 
 	var buf []byte = make([]byte, r.reqR.Request.ContentLength)
-	_, err := io.ReadAtLeast(r.BodyReader(), buf, len(buf))
+	n, err := io.ReadAtLeast(r.BodyReader(), buf, len(buf))
 	r.CloseBodyReader()
-	return buf, err
+	return buf[:n], err
 }
