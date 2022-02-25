@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	"github.com/go-www/silverlining"
+	"github.com/gobwas/ws"
+	"github.com/gobwas/ws/wsutil"
 	"github.com/lemon-mint/envaddr"
 )
 
@@ -50,6 +52,27 @@ func main() {
 			}
 
 			r.WriteJSONIndent(200, u, "", "  ")
+		case "/ws":
+			conn, err := r.UpgradeWebSocket(ws.OpBinary)
+			if err != nil {
+				println(err.Error())
+				r.WriteJSONIndent(500, map[string]string{"error": err.Error()}, "", "  ")
+				return
+			}
+
+			go func() {
+				defer conn.Close()
+				for {
+					msg, op, err := wsutil.ReadClientData(conn)
+					if err != nil {
+						return
+					}
+
+					if err := wsutil.WriteServerMessage(conn, op, msg); err != nil {
+						return
+					}
+				}
+			}()
 		default:
 			r.WriteFullBody(404, nil)
 		}

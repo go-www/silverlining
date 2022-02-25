@@ -71,8 +71,6 @@ func putBuffer8k(b *[]byte) {
 	buffer8kPool.Put(b)
 }
 
-/*
-
 type logConn struct {
 	c net.Conn
 }
@@ -90,7 +88,10 @@ func (lc *logConn) Write(b []byte) (n int, err error) {
 	return lc.c.Write(b)
 }
 
-*/
+func (lc *logConn) Close() error {
+	log.Println("Close")
+	return lc.c.Close()
+}
 
 func (s *Server) ServeConn(conn net.Conn) {
 	var hijack bool
@@ -111,8 +112,8 @@ func (s *Server) ServeConn(conn net.Conn) {
 		putBuffer8k(readBuffer)
 	}()
 
-	//reqCtx := GetRequestContext(&logConn{conn})
-	reqCtx := GetRequestContext(conn)
+	reqCtx := GetRequestContext(&logConn{conn})
+	//reqCtx := GetRequestContext(conn)
 	//defer PutRequestContext(reqCtx)
 	defer func() {
 		if hijack {
@@ -121,11 +122,11 @@ func (s *Server) ServeConn(conn net.Conn) {
 		PutRequestContext(reqCtx)
 	}()
 	reqCtx.server = s
-	//reqCtx.conn = &logConn{conn}
-	reqCtx.conn = conn
+	reqCtx.conn = &logConn{conn}
+	//reqCtx.conn = conn
 	reqCtx.reqR = h1.RequestReader{
-		//R: &logConn{conn},
-		R:          conn,
+		R: &logConn{conn},
+		//R:          conn,
 		ReadBuffer: *readBuffer,
 		NextBuffer: nil,
 		Request:    h1.Request{},
@@ -317,32 +318,6 @@ func (resp *Context) GetQueryParam(name []byte) (string, error) {
 	return resp.reqR.Request.URI.QueryValue(name)
 }
 
-func (r *Context) WriteFullBody(status int, body []byte) error {
-	r.response.StatusCode = status
-	r.SetContentLength(len(body))
-	_, err := r.Write(body)
-	return err
-}
-
-func (r *Context) WriteStream(status int, stream io.Reader) error {
-	r.response.StatusCode = status
-	buf := getBuffer8k()
-	defer putBuffer8k(buf)
-	for {
-		n, err := stream.Read((*buf)[:cap(*buf)])
-		if err != nil {
-			if err == io.EOF {
-				return nil
-			}
-			return err
-		}
-		_, err = r.Write((*buf)[:n])
-		if err != nil {
-			return err
-		}
-	}
-}
-
 func (r *Context) SetContentLength(length int) {
 	r.respW.ContentLength = length
 }
@@ -381,5 +356,6 @@ func (r *Context) resetHard() {
 }
 
 func (r *Context) HijackConn() io.ReadWriteCloser {
+	r.hijack = true
 	return r.conn
 }

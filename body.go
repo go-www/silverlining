@@ -17,3 +17,40 @@ func (r *Context) Body() ([]byte, error) {
 	r.CloseBodyReader()
 	return buf[:n], err
 }
+
+func (r *Context) WriteFullBody(status int, body []byte) error {
+	r.response.StatusCode = status
+	r.SetContentLength(len(body))
+	_, err := r.Write(body)
+	return err
+}
+
+func (r *Context) WriteFullBodyString(status int, body string) error {
+	r.response.StatusCode = status
+	r.SetContentLength(len(body))
+	_, err := r.Write(stringToBytes(body))
+	return err
+}
+
+func (r *Context) WriteStream(status int, stream io.Reader) error {
+	r.response.StatusCode = status
+	buf := getBuffer8k()
+	defer putBuffer8k(buf)
+	for {
+		n, err := stream.Read((*buf)[:cap(*buf)])
+		if err != nil {
+			if err == io.EOF {
+				return nil
+			}
+			return err
+		}
+		_, err = r.Write((*buf)[:n])
+		if err != nil {
+			return err
+		}
+	}
+}
+
+func (r *Context) Flush() error {
+	return r.respW.Flush()
+}
