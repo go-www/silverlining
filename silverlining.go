@@ -143,9 +143,9 @@ func (s *Server) ServeConn(conn net.Conn) {
 		//println("Request:", reqCtx.reqR.Request.Method, string(reqCtx.reqR.Request.URI))
 
 		s.Handler(reqCtx)
-		hijack = reqCtx.hijack
 
-		if hijack {
+		if reqCtx.hijack {
+			hijack = true
 			return
 		}
 
