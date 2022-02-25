@@ -6,12 +6,14 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/go-www/h1"
 	"github.com/go-www/silverlining"
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/lemon-mint/envaddr"
 )
+
+var json = jsoniter.ConfigFastest
 
 func main() {
 	ln, err := net.Listen("tcp", envaddr.Get(":8080"))
@@ -75,12 +77,7 @@ func main() {
 					}
 				}
 			}()
-		case "/httpbin/get":
-			if r.Method() != h1.MethodGET {
-				r.WriteFullBodyString(http.StatusMethodNotAllowed, "Method not allowed")
-				return
-			}
-
+		case "/httpbin":
 			Origin, ok := r.RequestHeaders().Get("Origin")
 			if !ok {
 				Origin = "*"
@@ -92,8 +89,10 @@ func main() {
 			hs := r.RequestHeaders().List()
 
 			type HttpRequest struct {
-				Args    map[string]string `json:"args"`
-				Headers map[string]string `json:"headers"`
+				Args    map[string]string      `json:"args"`
+				Data    string                 `json:"data"`
+				JSON    map[string]interface{} `json:"json"`
+				Headers map[string]string      `json:"headers"`
 			}
 
 			reqData := HttpRequest{
@@ -112,6 +111,14 @@ func main() {
 				}
 				reqData.Args[string(qp.Key)] = v
 			}
+
+			body, err := r.Body()
+			if err != nil {
+				r.WriteJSONIndent(500, map[string]string{"error": err.Error()}, "", "  ")
+				return
+			}
+			reqData.Data = string(body)
+			json.Unmarshal(body, &reqData.JSON)
 
 			r.WriteJSONIndent(200, reqData, "", "  ")
 		default:
