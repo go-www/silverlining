@@ -4,7 +4,9 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/url"
 
+	"github.com/go-www/h1"
 	"github.com/go-www/silverlining"
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
@@ -73,6 +75,38 @@ func main() {
 					}
 				}
 			}()
+		case "/httpbin/get":
+			if r.Method() != h1.MethodGET {
+				r.WriteFullBodyString(http.StatusMethodNotAllowed, "Method not allowed")
+				return
+			}
+
+			qps := r.QueryParams()
+			hs := r.RequestHeaders().List()
+
+			type HttpRequest struct {
+				Args    map[string]string `json:"args"`
+				Headers map[string]string `json:"headers"`
+			}
+
+			reqData := HttpRequest{
+				Args:    make(map[string]string),
+				Headers: make(map[string]string),
+			}
+
+			for _, h := range hs {
+				reqData.Headers[string(h.Name)] = string(h.RawValue)
+			}
+
+			for _, qp := range qps {
+				v, err := url.QueryUnescape(string(qp.RawValue))
+				if err != nil {
+					continue
+				}
+				reqData.Args[string(qp.Key)] = v
+			}
+
+			r.WriteJSONIndent(200, reqData, "", "  ")
 		default:
 			r.WriteFullBody(404, nil)
 		}
