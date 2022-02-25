@@ -56,18 +56,18 @@ func (r *Context) writeUpgradeWebSocket() error {
 		r.WriteFullBodyString(400, "Missing Sec-WebSocket-Key header")
 		return ErrUpgradeBadRequest
 	}
-	const nonceSizeEncoded = 24
-	if len(SecKey) < nonceSizeEncoded {
+
+	if len(SecKey) < 24 {
 		r.ResponseHeaders().Set("Content-Type", "text/plain")
 		r.WriteFullBodyString(400, "Invalid Sec-WebSocket-Key header")
 		return ErrUpgradeBadRequest
 	}
-	r.ResponseHeaders().Set("X-Client-Sec-Key", SecKey)
+
 	r.ResponseHeaders().Set("Connection", "Upgrade")
 	r.ResponseHeaders().Set("Upgrade", "Websocket")
 
 	h := sha1.New()
-	h.Write(stringToBytes(strings.Trim(SecKey, " ")))
+	h.Write(stringToBytes(SecKey))
 	h.Write(stringToBytes("258EAFA5-E914-47DA-95CA-C5AB0DC85B11"))
 	r.ResponseHeaders().Set("Sec-WebSocket-Accept", base64.StdEncoding.EncodeToString(h.Sum(nil)))
 	r.WriteHeader(http.StatusSwitchingProtocols)
