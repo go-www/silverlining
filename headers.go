@@ -1,5 +1,7 @@
 package silverlining
 
+import "github.com/go-www/h1"
+
 type ResponseHeaders struct {
 	v *Context
 }
@@ -50,6 +52,10 @@ func (r RequestHeaders) Get(name string) (string, bool) {
 
 func (r RequestHeaders) GetBytes(name []byte) ([]byte, bool) {
 	return r.v.getHeaderBytes(name)
+}
+
+func (r RequestHeaders) List() []h1.Header {
+	return r.v.reqR.Request.Headers
 }
 
 func (r *Context) RequestHeaders() RequestHeaders {
