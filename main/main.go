@@ -89,6 +89,8 @@ func main() {
 			hs := r.RequestHeaders().List()
 
 			type HttpRequest struct {
+				Method string `json:"method"`
+
 				Args    map[string]string      `json:"args"`
 				Data    string                 `json:"data"`
 				JSON    map[string]interface{} `json:"json"`
@@ -96,6 +98,7 @@ func main() {
 			}
 
 			reqData := HttpRequest{
+				Method:  r.Method().String(),
 				Args:    make(map[string]string),
 				Headers: make(map[string]string),
 			}
