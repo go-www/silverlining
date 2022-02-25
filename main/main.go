@@ -55,7 +55,7 @@ func main() {
 		case "/ws":
 			conn, err := r.UpgradeWebSocket(ws.OpBinary)
 			if err != nil {
-				println(err.Error())
+				//println(err.Error())
 				r.WriteJSONIndent(500, map[string]string{"error": err.Error()}, "", "  ")
 				return
 			}
