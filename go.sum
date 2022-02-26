@@ -3,6 +3,10 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/go-www/h1 v0.0.0-20220225143002-9522780cc14a h1:cE/8dGnxbXCZyVCdqTAavlluNdbGY06SS4tOl+cepgU=
 github.com/go-www/h1 v0.0.0-20220225143002-9522780cc14a/go.mod h1:pFiXMva/K5c/blSpJXy+p37srAPG8YjbHObQ8oMZzms=
+github.com/go-www/h1 v0.0.0-20220226050726-cbb8c3c0d402 h1:QxeDrKSMcO0Kdz5dECE1TCsXZwrdpG95q1TJrGtQoqM=
+github.com/go-www/h1 v0.0.0-20220226050726-cbb8c3c0d402/go.mod h1:pFiXMva/K5c/blSpJXy+p37srAPG8YjbHObQ8oMZzms=
+github.com/go-www/h1 v0.0.0-20220226055348-372f3c8244b4 h1:Ue7kSDcP23DOwIXRnyZvuNKKc5TYzjdLH1beYvLlZ8U=
+github.com/go-www/h1 v0.0.0-20220226055348-372f3c8244b4/go.mod h1:pFiXMva/K5c/blSpJXy+p37srAPG8YjbHObQ8oMZzms=
 github.com/gobwas/httphead v0.1.0 h1:exrUm0f4YX0L7EBwZHuCF4GDp8aJfVeBrlLQrs6NqWU=
 github.com/gobwas/httphead v0.1.0/go.mod h1:O/RXo79gxV8G+RqlR/otEwx4Q36zl9rqC5u12GKvMCM=
 github.com/gobwas/pool v0.2.1 h1:xfeeEhW7pwmX8nuLVlqbzVc7udMDrwetjEv+TZIz1og=

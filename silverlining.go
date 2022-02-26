@@ -93,6 +93,9 @@ func (lc *logConn) Close() error {
 	log.Println("Close")
 	return lc.c.Close()
 }
+
+const debug = false
+
 */
 
 func (s *Server) ServeConn(conn net.Conn) {
@@ -114,8 +117,10 @@ func (s *Server) ServeConn(conn net.Conn) {
 		putBuffer8k(readBuffer)
 	}()
 
-	//reqCtx := GetRequestContext(&logConn{conn})
 	reqCtx := GetRequestContext(conn)
+	//if debug {
+	//	reqCtx = GetRequestContext(&logConn{conn})
+	//}
 	//defer PutRequestContext(reqCtx)
 	defer func() {
 		if hijack {
@@ -124,7 +129,9 @@ func (s *Server) ServeConn(conn net.Conn) {
 		PutRequestContext(reqCtx)
 	}()
 	reqCtx.server = s
-	//reqCtx.conn = &logConn{conn}
+	//if debug {
+	//	reqCtx.conn = &logConn{conn}
+	//}
 	reqCtx.conn = conn
 	reqCtx.rawconn = conn
 	reqCtx.reqR = h1.RequestReader{
@@ -134,6 +141,10 @@ func (s *Server) ServeConn(conn net.Conn) {
 		NextBuffer: nil,
 		Request:    h1.Request{},
 	}
+
+	//if debug {
+	//	reqCtx.reqR.R = &logConn{conn}
+	//}
 
 	for {
 		if s.ReadTimeout > 0 {
