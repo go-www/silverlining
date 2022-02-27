@@ -113,6 +113,7 @@ func main() {
 				Args    map[string]string      `json:"args"`
 				Data    string                 `json:"data"`
 				JSON    map[string]interface{} `json:"json"`
+				Form    map[string]string      `json:"form"`
 				Headers map[string]string      `json:"headers"`
 			}
 
@@ -130,13 +131,19 @@ func main() {
 				reqData.Args[string(qp.Key)] = string(qp.Value)
 			}
 
-			body, err := r.Body()
+			body, err := r.FastBodyUnsafe(srv.MaxBodySize)
 			if err != nil {
 				r.WriteJSONIndent(500, map[string]string{"error": err.Error()}, "", "  ")
 				return
 			}
 			reqData.Data = string(body)
 			json.Unmarshal(body, &reqData.JSON)
+
+			qfurl := h1.ParseRawQuery(body, nil)
+			reqData.Form = make(map[string]string)
+			for _, qp := range qfurl {
+				reqData.Form[string(qp.Key)] = string(qp.Value)
+			}
 
 			r.WriteJSONIndent(200, reqData, "", "  ")
 		default:
