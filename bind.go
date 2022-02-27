@@ -92,3 +92,18 @@ func (r *Context) BindHeader(v any) error {
 func (r *Context) BindJSON(v any) error {
 	return r.ReadJSON(v)
 }
+
+func (r *Context) BindWWWFormURLEncoded(v any) error {
+	f, err := r.XWWWFormURLEncoded(r.server.MaxBodySize)
+	if err != nil {
+		return err
+	}
+	defer f.Close() // Safe to reuse the same f on other requests.
+
+	err = bindStruct(v, "form", func(key string) (value string, found bool) {
+		v, found = f.GetString(key) // allocates and copies
+		return
+	})
+
+	return err
+}
