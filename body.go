@@ -18,6 +18,23 @@ func (r *Context) Body() ([]byte, error) {
 	return buf[:n], err
 }
 
+func (r *Context) FastBodyUnsafe(maxBufferSize int64) ([]byte, error) {
+	if r.reqR.Request.ContentLength > maxBufferSize {
+		return nil, ErrBodyTooLarge
+	}
+
+	if r.reqR.Request.ContentLength <= int64(len(r.reqR.NextBuffer)) {
+		v := r.reqR.NextBuffer[:r.reqR.Request.ContentLength]
+		r.reqR.NextBuffer = r.reqR.NextBuffer[r.reqR.Request.ContentLength:]
+		return v, nil
+	}
+
+	var buf []byte = make([]byte, r.reqR.Request.ContentLength)
+	n, err := io.ReadAtLeast(r.BodyReader(), buf, len(buf))
+	r.CloseBodyReader()
+	return buf[:n], err
+}
+
 func (r *Context) WriteFullBody(status int, body []byte) error {
 	r.response.StatusCode = status
 	r.SetContentLength(len(body))
