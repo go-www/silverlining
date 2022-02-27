@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/go-www/h1"
 	"github.com/go-www/silverlining"
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
@@ -82,7 +83,26 @@ func main() {
 				Origin = "*"
 			}
 			r.ResponseHeaders().Set("Access-Control-Allow-Origin", Origin)
+			r.ResponseHeaders().Set("Access-Control-Allow-Credentials", "true")
 			r.ResponseHeaders().Set("Vary", "Origin")
+
+			// Handle CORS preflight request
+			if r.Method() == h1.MethodOPTIONS {
+				RequestMethod, ok := r.RequestHeaders().Get("Access-Control-Request-Method")
+				if ok {
+					r.ResponseHeaders().Set("Access-Control-Allow-Methods", RequestMethod)
+				}
+
+				RequestHeaders, ok := r.RequestHeaders().Get("Access-Control-Request-Headers")
+				if ok {
+					r.ResponseHeaders().Set("Access-Control-Allow-Headers", RequestHeaders)
+				}
+
+				r.ResponseHeaders().Set("Access-Control-Max-Age", "86400")
+
+				r.WriteFullBody(http.StatusNoContent, nil)
+				return
+			}
 
 			qps := r.QueryParams()
 			hs := r.RequestHeaders().List()
