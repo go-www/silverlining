@@ -78,6 +78,8 @@ func main() {
 				}
 			}()
 		case "/httpbin":
+			// inspired by https://httpbin.org/
+
 			Origin, ok := r.RequestHeaders().Get("Origin")
 			if !ok {
 				Origin = "*"
