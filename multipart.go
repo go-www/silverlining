@@ -14,12 +14,20 @@ func (r *Context) MultipartReader() (*multipart.Reader, error) {
 	if !ok {
 		return nil, ErrContentTypeInvalid
 	}
+
 	mediatype, params, err := mime.ParseMediaType(contentType)
 	if err != nil {
 		return nil, err
 	}
+
 	if !strings.HasPrefix(mediatype, "multipart/") {
 		return nil, ErrContentTypeInvalid
 	}
-	return multipart.NewReader(r.BodyReader(), params["boundary"]), nil
+
+	boundary, ok := params["boundary"]
+	if !ok {
+		return nil, ErrContentTypeInvalid
+	}
+
+	return multipart.NewReader(r.BodyReader(), boundary), nil
 }
