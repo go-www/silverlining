@@ -46,14 +46,23 @@ type RequestHeaders struct {
 	v *Context
 }
 
+// (RequestHeaders).Get returns the value of the header with the given name.
+//
+// Returned value is valid until the next request.
 func (r RequestHeaders) Get(name string) (string, bool) {
 	return r.v.getHeader(name)
 }
 
+// (RequestHeaders).GetBytes returns the value of the header with the given name.
+//
+// Returned value is valid until the next request.
 func (r RequestHeaders) GetBytes(name []byte) ([]byte, bool) {
 	return r.v.getHeaderBytes(name)
 }
 
+// (RequestHeaders).List returns a slice of all the headers.
+//
+// Returned value is valid until the next request.
 func (r RequestHeaders) List() []h1.Header {
 	return r.v.reqR.Request.Headers
 }
