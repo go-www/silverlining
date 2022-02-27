@@ -74,11 +74,12 @@ func bindStruct(v any, stag string, src func(key string) (value string, found bo
 
 func (r *Context) BindQuery(v any) error {
 	return bindStruct(v, "query", func(key string) (value string, found bool) {
-		value, err := r.GetQueryParam([]byte(key))
+		v, err := r.GetQueryParam(stringToBytes(key))
 		if err != nil {
 			found = false
 			return
 		}
+		value = string(v)
 		found = true
 		return
 	})

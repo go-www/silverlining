@@ -330,7 +330,7 @@ func (resp *Context) QueryParams() []h1.Query {
 	return resp.reqR.Request.URI.Query()
 }
 
-func (resp *Context) GetQueryParam(name []byte) (string, error) {
+func (resp *Context) GetQueryParam(name []byte) ([]byte, error) {
 	return resp.reqR.Request.URI.QueryValue(name)
 }
 

@@ -4,7 +4,6 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"net/url"
 
 	"github.com/go-www/silverlining"
 	"github.com/gobwas/ws"
@@ -108,11 +107,7 @@ func main() {
 			}
 
 			for _, qp := range qps {
-				v, err := url.QueryUnescape(string(qp.RawValue))
-				if err != nil {
-					continue
-				}
-				reqData.Args[string(qp.Key)] = v
+				reqData.Args[string(qp.Key)] = string(qp.Value)
 			}
 
 			body, err := r.Body()
