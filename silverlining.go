@@ -156,7 +156,7 @@ func (s *Server) ServeConn(conn net.Conn) {
 				//log.Println("EOF")
 				return
 			}
-			log.Println(err)
+			//log.Println(err)
 			return
 		}
 		reqCtx.resetSoft()
