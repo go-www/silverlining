@@ -313,25 +313,25 @@ type Header struct {
 	Value string
 }
 
-func (resp *Response) reset() {
-	resp.StatusCode = 200
-	resp.Headers = resp.Headers[:0]
+func (r *Response) reset() {
+	r.StatusCode = 200
+	r.Headers = r.Headers[:0]
 }
 
-func (resp *Context) RawURI() []byte {
-	return resp.reqR.Request.RawURI
+func (r *Context) RawURI() []byte {
+	return r.reqR.Request.RawURI
 }
 
-func (resp *Context) Path() []byte {
-	return resp.reqR.Request.URI.Path()
+func (r *Context) Path() []byte {
+	return r.reqR.Request.URI.Path()
 }
 
-func (resp *Context) QueryParams() []h1.Query {
-	return resp.reqR.Request.URI.Query()
+func (r *Context) QueryParams() []h1.Query {
+	return r.reqR.Request.URI.Query()
 }
 
-func (resp *Context) GetQueryParam(name []byte) ([]byte, error) {
-	return resp.reqR.Request.URI.QueryValue(name)
+func (r *Context) GetQueryParam(name []byte) ([]byte, error) {
+	return r.reqR.Request.URI.QueryValue(name)
 }
 
 func (r *Context) SetContentLength(length int) {
