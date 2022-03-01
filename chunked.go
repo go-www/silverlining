@@ -64,7 +64,7 @@ func (c ChunkedBodyWriter) Close() error {
 	return nil
 }
 
-func (r *Context) ChunkedBodyWriter() ChunckedBodyWriter {
+func (r *Context) ChunkedBodyWriter() ChunkedBodyWriter {
 	r.SetContentLength(-2)
 	r.ResponseHeaders().Set("Transfer-Encoding", "chunked")
 	return ChunkedBodyWriter{r}
