@@ -149,7 +149,7 @@ func main() {
 
 			r.WriteJSONIndent(200, reqData, "", "  ")
 		case "/chunked":
-			w := r.ChunckedBodyWriter()
+			w := r.ChunkedBodyWriter()
 			defer w.Close()
 			w.WriteString("Hello, World!")
 		default:
