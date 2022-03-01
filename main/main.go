@@ -148,6 +148,10 @@ func main() {
 			}
 
 			r.WriteJSONIndent(200, reqData, "", "  ")
+		case "/chunked":
+			w := r.ChunckedBodyWriter()
+			defer w.Close()
+			w.WriteString("Hello, World!")
 		default:
 			r.WriteFullBody(404, nil)
 		}

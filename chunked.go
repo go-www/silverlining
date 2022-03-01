@@ -9,6 +9,7 @@ func (c ChunckedBodyWriter) Write(p []byte) (int, error) {
 		return 0, nil
 	}
 
+	c.v.WriteHeader(c.v.response.StatusCode)
 	_, err := c.v.respW.WriteUint64Hex(uint64(len(p)))
 	if err != nil {
 		return 0, err
@@ -28,8 +29,29 @@ func (c ChunckedBodyWriter) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-func (c ChunckedBodyWriter) WriteString(s string) (int, error) {
-	return c.Write(stringToBytes(s))
+func (c ChunckedBodyWriter) WriteString(p string) (int, error) {
+	if len(p) == 0 {
+		return 0, nil
+	}
+
+	c.v.WriteHeader(c.v.response.StatusCode)
+	_, err := c.v.respW.WriteUint64Hex(uint64(len(p)))
+	if err != nil {
+		return 0, err
+	}
+	_, err = c.v.respW.Write(crlf)
+	if err != nil {
+		return 0, err
+	}
+	_, err = c.v.respW.WriteString(p)
+	if err != nil {
+		return 0, err
+	}
+	_, err = c.v.respW.Write(crlf)
+	if err != nil {
+		return 0, err
+	}
+	return len(p), nil
 }
 
 var chunkClose = []byte("0\r\n\r\n")
