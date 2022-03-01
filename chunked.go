@@ -1,10 +1,10 @@
 package silverlining
 
-type ChunckedBodyWriter struct {
+type ChunkedBodyWriter struct {
 	v *Context
 }
 
-func (c ChunckedBodyWriter) Write(p []byte) (int, error) {
+func (c ChunkedBodyWriter) Write(p []byte) (int, error) {
 	if len(p) == 0 {
 		return 0, nil
 	}
@@ -29,7 +29,7 @@ func (c ChunckedBodyWriter) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-func (c ChunckedBodyWriter) WriteString(p string) (int, error) {
+func (c ChunkedBodyWriter) WriteString(p string) (int, error) {
 	if len(p) == 0 {
 		return 0, nil
 	}
@@ -56,7 +56,7 @@ func (c ChunckedBodyWriter) WriteString(p string) (int, error) {
 
 var chunkClose = []byte("0\r\n\r\n")
 
-func (c ChunckedBodyWriter) Close() error {
+func (c ChunkedBodyWriter) Close() error {
 	_, err := c.v.respW.Write(chunkClose)
 	if err != nil {
 		return err
@@ -64,8 +64,8 @@ func (c ChunckedBodyWriter) Close() error {
 	return nil
 }
 
-func (r *Context) ChunckedBodyWriter() ChunckedBodyWriter {
+func (r *Context) ChunkedBodyWriter() ChunckedBodyWriter {
 	r.SetContentLength(-2)
 	r.ResponseHeaders().Set("Transfer-Encoding", "chunked")
-	return ChunckedBodyWriter{r}
+	return ChunkedBodyWriter{r}
 }
