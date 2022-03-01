@@ -12,6 +12,7 @@ import (
 )
 
 var ErrUpgradeBadRequest = errors.New("upgrade request is not valid")
+var wsMagic = []byte("258EAFA5-E914-47DA-95CA-C5AB0DC85B11")
 
 func (r *Context) writeUpgradeWebSocket() error {
 	Upgrade, ok := r.RequestHeaders().Get("Upgrade")
@@ -68,7 +69,7 @@ func (r *Context) writeUpgradeWebSocket() error {
 
 	h := sha1.New()
 	h.Write(stringToBytes(SecKey))
-	h.Write(stringToBytes("258EAFA5-E914-47DA-95CA-C5AB0DC85B11"))
+	h.Write(wsMagic)
 	r.ResponseHeaders().Set("Sec-WebSocket-Accept", base64.StdEncoding.EncodeToString(h.Sum(nil)))
 	r.WriteHeader(http.StatusSwitchingProtocols)
 	err := r.Flush()
