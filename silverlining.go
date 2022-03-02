@@ -334,6 +334,14 @@ func (r *Context) GetQueryParam(name []byte) ([]byte, error) {
 	return r.reqR.Request.URI.QueryValue(name)
 }
 
+func (r *Context) GetQueryParamString(name string) (string, error) {
+	v, err := r.reqR.Request.URI.QueryValue(stringToBytes(name))
+	if err != nil {
+		return "", err
+	}
+	return bytesToString(v), nil
+}
+
 func (r *Context) SetContentLength(length int) {
 	r.respW.ContentLength = length
 }
