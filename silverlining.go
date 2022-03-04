@@ -396,3 +396,8 @@ func (r *Context) Method() h1.Method {
 func (r *Context) ConnectionClose() {
 	r.SetContentLength(-1)
 }
+
+func (r *Context) KillConn() error {
+	r.ConnectionClose()
+	return r.conn.Close()
+}

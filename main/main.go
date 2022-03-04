@@ -152,6 +152,8 @@ func main() {
 			w := r.ChunkedBodyWriter()
 			defer w.Close()
 			w.WriteString("Hello, World!")
+		case "/kill":
+			r.KillConn()
 		default:
 			r.WriteFullBody(404, nil)
 		}
