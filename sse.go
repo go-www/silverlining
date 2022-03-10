@@ -4,10 +4,10 @@ type ServerSentEventWriter struct {
 	v *Context
 }
 
-func (r *Context) ServerSentEventWriter() *ServerSentEventWriter {
+func (r *Context) ServerSentEventWriter() ServerSentEventWriter {
 	r.ResponseHeaders().Set("Content-Type", "text/event-stream")
 	r.SetContentLength(-1)
-	return &ServerSentEventWriter{r}
+	return ServerSentEventWriter{r}
 }
 
 func (s ServerSentEventWriter) Flush() error {
