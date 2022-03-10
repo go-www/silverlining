@@ -4,6 +4,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/go-www/h1"
@@ -155,13 +156,14 @@ func main() {
 			w.WriteString("Hello, World!")
 		case "/sse":
 			w := r.ServerSentEventWriter()
-			t := time.NewTicker(time.Second)
-			defer t.Stop()
-			for ts := range t.C {
-				err := w.Send("tick", ts.Format(time.RFC3339))
+			var i int
+			for {
+				i++
+				err := w.Send(strconv.Itoa(i), "time", time.Now().Format(time.RFC3339))
 				if err != nil {
-					return
+					break
 				}
+				time.Sleep(time.Second)
 			}
 		case "/kill":
 			r.KillConn()

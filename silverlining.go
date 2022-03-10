@@ -2,7 +2,6 @@ package silverlining
 
 import (
 	"io"
-	"log"
 	"net"
 	"sync"
 	"time"
@@ -153,15 +152,15 @@ func (s *Server) ServeConn(conn net.Conn) {
 		_, err := reqCtx.reqR.Next()
 		if err != nil {
 			if err == io.EOF {
-				//log.Println("EOF")
+				// log.Println("EOF")
 				return
 			}
-			//log.Println(err)
+			// log.Println(err)
 			return
 		}
 		reqCtx.resetSoft()
 
-		//println("Request:", reqCtx.reqR.Request.Method, string(reqCtx.reqR.Request.URI))
+		// println("Request:", reqCtx.reqR.Request.Method, string(reqCtx.reqR.Request.URI))
 
 		s.Handler(reqCtx)
 
@@ -173,18 +172,18 @@ func (s *Server) ServeConn(conn net.Conn) {
 		if reqCtx.respW.ContentLength == -1 {
 			err = reqCtx.respW.Flush()
 			if err != nil {
-				log.Println(err)
+				// log.Println(err)
 				return
 			}
 			return
 		}
 
-		//println("Response:", reqCtx.response.StatusCode)
+		// println("Response:", reqCtx.response.StatusCode)
 
 		if reqCtx.reqR.Remaining() == 0 {
 			err = reqCtx.respW.Flush()
 			if err != nil {
-				log.Println(err)
+				// log.Println(err)
 				return
 			}
 		}
@@ -240,11 +239,13 @@ func (r *Context) WriteHeader(status int) {
 		r.respW.WriteHeader(r.response.StatusCode)
 		err := r.writeUserHeader()
 		if err != nil {
-			log.Println(err)
+			// log.Println(err)
+			return
 		}
 		_, err = r.respW.Write(crlf)
 		if err != nil {
-			log.Println(err)
+			// log.Println(err)
+			return
 		}
 	}
 }

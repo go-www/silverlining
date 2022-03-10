@@ -17,10 +17,24 @@ func (s ServerSentEventWriter) Flush() error {
 var sse_newline = []byte("\n")
 var sse_newline_newline = []byte("\n\n")
 var sse_event = []byte("event: ")
+var sse_id = []byte("id: ")
 var sse_data = []byte("data: ")
 
-func (s ServerSentEventWriter) Send(event string, data string) error {
-	_, err := s.v.Write(sse_event)
+func (s ServerSentEventWriter) Send(id, event, data string) error {
+	_, err := s.v.Write(sse_id)
+	if err != nil {
+		return err
+	}
+	_, err = s.v.WriteString(id)
+	if err != nil {
+		return err
+	}
+	_, err = s.v.Write(sse_newline)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.v.Write(sse_event)
 	if err != nil {
 		return err
 	}
