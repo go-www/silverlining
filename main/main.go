@@ -4,6 +4,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"time"
 
 	"github.com/go-www/h1"
 	"github.com/go-www/silverlining"
@@ -152,6 +153,16 @@ func main() {
 			w := r.ChunkedBodyWriter()
 			defer w.Close()
 			w.WriteString("Hello, World!")
+		case "/sse":
+			w := r.ServerSentEventWriter()
+			t := time.NewTicker(time.Second)
+			defer t.Stop()
+			for ts := range t.C {
+				err := w.Send("tick", ts.Format(time.RFC3339))
+				if err != nil {
+					return
+				}
+			}
 		case "/kill":
 			r.KillConn()
 		default:

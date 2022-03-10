@@ -228,6 +228,11 @@ func (r *Context) Write(p []byte) (n int, err error) {
 	return r.respW.Write(p)
 }
 
+func (r *Context) WriteString(s string) (n int, err error) {
+	r.WriteHeader(r.response.StatusCode)
+	return r.respW.WriteString(s)
+}
+
 func (r *Context) WriteHeader(status int) {
 	if !r.hwt {
 		r.response.StatusCode = status
