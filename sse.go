@@ -5,7 +5,12 @@ type ServerSentEventWriter struct {
 }
 
 func (r *Context) ServerSentEventWriter() ServerSentEventWriter {
-	r.ResponseHeaders().Set("Content-Type", "text/event-stream")
+	rh := r.ResponseHeaders()
+	rh.Set("Connection", "keep-alive")
+	rh.Set("Cache-Control", "no-cache")
+	rh.Set("Content-Type", "text/event-stream")
+	rh.Set("X-Accel-Buffering", "no")
+
 	r.SetContentLength(-1)
 	return ServerSentEventWriter{r}
 }
