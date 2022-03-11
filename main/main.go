@@ -157,6 +157,10 @@ func main() {
 		case "/sse":
 			w := r.ServerSentEventWriter()
 			var i int
+			err := w.WriteHeartbeat()
+			if err != nil {
+				return
+			}
 			for {
 				i++
 				err := w.Send(strconv.Itoa(i), "time", time.Now().Format(time.RFC3339))

@@ -63,7 +63,7 @@ func (s ServerSentEventWriter) Send(id, event, data string) error {
 	return s.v.Flush()
 }
 
-var sse_heartbeat = []byte(":heartbeat\n\n")
+var sse_heartbeat = []byte(":\n\n")
 
 func (s ServerSentEventWriter) WriteHeartbeat() error {
 	_, err := s.v.Write(sse_data)
