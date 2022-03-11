@@ -71,11 +71,7 @@ func (s ServerSentEventWriter) Send(id, event, data string) error {
 var sse_heartbeat = []byte(":\n\n")
 
 func (s ServerSentEventWriter) WriteHeartbeat() error {
-	_, err := s.v.Write(sse_data)
-	if err != nil {
-		return err
-	}
-	_, err = s.v.Write(sse_heartbeat)
+	_, err := s.v.Write(sse_heartbeat)
 	if err != nil {
 		return err
 	}
