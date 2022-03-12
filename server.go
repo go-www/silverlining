@@ -49,7 +49,7 @@ func ListenAndServePrefork(addr string, handler Handler) error {
 		env = append(env, os.Environ()...)
 		env = append(env, "GOMAXPROCS=1", "SILVERLINING_PREFORK_CHILD=1")
 
-		for i := 0; i < numCPU; i++ {
+		for i := 0; i < numCPU-1; i++ {
 			cmd := exec.Command(os.Args[0], os.Args[1:]...)
 			cmd.Env = env
 			cmd.Stdout = os.Stdout
