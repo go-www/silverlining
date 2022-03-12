@@ -1,8 +1,8 @@
 package main
 
 import (
+	"flag"
 	"log"
-	"net"
 	"net/http"
 	"strconv"
 	"time"
@@ -17,24 +17,18 @@ import (
 
 var json = jsoniter.ConfigFastest
 
+var (
+	prefork = flag.Bool("prefork", false, "use prefork")
+)
+
 func main() {
-	ln, err := net.Listen("tcp", envaddr.Get(":8080"))
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Printf("Listening on http://%s", ln.Addr())
-
-	defer ln.Close()
-
-	srv := silverlining.Server{
-		//ReadTimeout: time.Minute,
-	}
+	flag.Parse()
 
 	data := []byte("Hello, World!")
 	healthz := []byte("OK")
 	jsonData := map[string]string{"hello": "world"}
 
-	srv.Handler = func(r *silverlining.Context) {
+	Handler := func(r *silverlining.Context) {
 		switch string(r.Path()) {
 		case "/":
 			r.ResponseHeaders().Set("Content-Type", "text/plain")
@@ -135,7 +129,7 @@ func main() {
 				reqData.Args[string(qp.Key)] = string(qp.Value)
 			}
 
-			body, err := r.FastBodyUnsafe(srv.MaxBodySize)
+			body, err := r.FastBodyUnsafe(1024 * 1024 * 5) // 5MB
 			if err != nil {
 				r.WriteJSONIndent(500, map[string]string{"error": err.Error()}, "", "  ")
 				return
@@ -176,8 +170,24 @@ func main() {
 		}
 	}
 
-	err = srv.Serve(ln)
+	var err error
+	if *prefork {
+		var id int
+		id, err = silverlining.PreforkChildID()
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		if id == 0 {
+			log.Println("Starting prefork leader process")
+		} else {
+			log.Printf("Starting prefork replica process %d", id)
+		}
+		err = silverlining.ListenAndServePrefork(envaddr.Get(":8080"), Handler)
+	} else {
+		err = silverlining.ListenAndServe(envaddr.Get(":8080"), Handler)
+	}
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalln(err)
 	}
 }

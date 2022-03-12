@@ -1,10 +1,12 @@
 package silverlining
 
 import (
+	"errors"
 	"net"
 	"os"
 	"os/exec"
 	"runtime"
+	"strconv"
 
 	reuse "github.com/libp2p/go-reuseport"
 )
@@ -37,19 +39,40 @@ func ListenAndServeReusePort(addr string, handler Handler) error {
 	return srv.Serve(ln)
 }
 
+func PreforkIsChild() bool {
+	return os.Getenv("SILVERLINING_PREFORK_CHILD") == "1"
+}
+
+var ErrPreforkChildIDNotFound = errors.New("child id not found")
+
+func PreforkChildID() (int, error) {
+	if !PreforkIsChild() {
+		return 0, nil
+	}
+
+	ChildIDEnv, ok := os.LookupEnv("SILVERLINING_PREFORK_CHILD_ID")
+	if !ok {
+		return 0, ErrPreforkChildIDNotFound
+	}
+
+	ChildID, err := strconv.Atoi(ChildIDEnv)
+	if err != nil {
+		return 0, err
+	}
+
+	return ChildID, nil
+}
+
 func ListenAndServePrefork(addr string, handler Handler) error {
 	runtime.GOMAXPROCS(1)
 
-	IsChildEnv := os.Getenv("SILVERLINING_PREFORK_CHILD")
-	IsChild := IsChildEnv == "1"
-
-	if !IsChild {
+	if !PreforkIsChild() {
 		numCPU := runtime.NumCPU()
-		var env []string
-		env = append(env, os.Environ()...)
-		env = append(env, "GOMAXPROCS=1", "SILVERLINING_PREFORK_CHILD=1")
-
 		for i := 0; i < numCPU-1; i++ {
+			var env []string
+			env = append(env, os.Environ()...)
+			env = append(env, "GOMAXPROCS=1", "SILVERLINING_PREFORK_CHILD=1", "SILVERLINING_PREFORK_CHILD_ID="+strconv.Itoa(i+1))
+
 			cmd := exec.Command(os.Args[0], os.Args[1:]...)
 			cmd.Env = env
 			cmd.Stdout = os.Stdout
