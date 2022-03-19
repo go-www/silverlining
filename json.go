@@ -1,10 +1,8 @@
 package silverlining
 
-import (
-	jsoniter "github.com/json-iterator/go"
-)
+import "encoding/json"
 
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
+//var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 func (r *Context) ReadJSON(v any) error {
 	bodyReader := r.BodyReader()

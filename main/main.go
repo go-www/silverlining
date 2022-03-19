@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"log"
 	"net/http"
@@ -11,11 +12,10 @@ import (
 	"github.com/go-www/silverlining"
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/lemon-mint/envaddr"
 )
 
-var json = jsoniter.ConfigFastest
+//var json = jsoniter.ConfigFastest
 
 var (
 	prefork = flag.Bool("prefork", false, "use prefork")
