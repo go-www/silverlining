@@ -149,18 +149,11 @@ func (s *Server) ServeConn(conn net.Conn) {
 		if s.ReadTimeout > 0 {
 			conn.SetReadDeadline(time.Now().Add(s.ReadTimeout))
 		}
+		reqCtx.resetSoft()
 		_, err := reqCtx.reqR.Next()
 		if err != nil {
-			if err == io.EOF {
-				// log.Println("EOF")
-				return
-			}
-			// log.Println(err)
 			return
 		}
-		reqCtx.resetSoft()
-
-		// println("Request:", reqCtx.reqR.Request.Method, string(reqCtx.reqR.Request.URI))
 
 		s.Handler(reqCtx)
 
@@ -170,11 +163,7 @@ func (s *Server) ServeConn(conn net.Conn) {
 		}
 
 		if reqCtx.respW.ContentLength == -1 {
-			err = reqCtx.respW.Flush()
-			if err != nil {
-				// log.Println(err)
-				return
-			}
+			_ = reqCtx.respW.Flush()
 			return
 		}
 
@@ -183,9 +172,9 @@ func (s *Server) ServeConn(conn net.Conn) {
 		if reqCtx.reqR.Remaining() == 0 {
 			err = reqCtx.respW.Flush()
 			if err != nil {
-				// log.Println(err)
 				return
 			}
+			// continue
 		}
 	}
 }
