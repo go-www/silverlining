@@ -1,6 +1,6 @@
 package silverlining
 
-import "encoding/json"
+import "github.com/goccy/go-json"
 
 //var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
