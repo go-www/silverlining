@@ -5,15 +5,19 @@ import (
 	"log"
 
 	"github.com/go-www/silverlining"
-	"github.com/lemon-mint/envaddr"
 )
 
-var (
+var BindAddr string
+var prefork *bool
+
+func init() {
+	flag.StringVar(&BindAddr, "bind", ":8080", "set bind host")
 	prefork = flag.Bool("prefork", false, "use prefork")
-)
+	flag.Parse()
+}
 
 func main() {
-	flag.Parse()
+	log.Printf("Listening on http://localhost%s", BindAddr)
 
 	Handler := func(r *silverlining.Context) {
 		switch string(r.Path()) {
@@ -44,9 +48,9 @@ func main() {
 		} else {
 			log.Printf("Starting prefork replica process %d", id)
 		}
-		err = silverlining.ListenAndServePrefork(envaddr.Get(":8080"), Handler)
+		err = silverlining.ListenAndServePrefork(BindAddr, Handler)
 	} else {
-		err = silverlining.ListenAndServe(envaddr.Get(":8080"), Handler)
+		err = silverlining.ListenAndServe(BindAddr, Handler)
 	}
 	if err != nil {
 		log.Fatalln(err)
