@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-www/h1"
 	"github.com/go-www/silverlining/gopool"
+	"github.com/go-www/silverlining/h1"
 )
 
 type Handler func(r *Context)
@@ -108,7 +108,6 @@ func (s *Server) ServeConn(conn net.Conn) {
 	}()
 
 	readBuffer := getBuffer8k()
-	//defer putBuffer8k(readBuffer)
 	defer func() {
 		if hijack {
 			return
@@ -117,9 +116,11 @@ func (s *Server) ServeConn(conn net.Conn) {
 	}()
 
 	reqCtx := GetRequestContext(conn)
-	//if debug {
-	//	reqCtx = GetRequestContext(&logConn{conn})
-	//}
+	/*
+		if debug {
+			reqCtx = GetRequestContext(&logConn{conn})
+		}
+	*/
 	//defer PutRequestContext(reqCtx)
 	defer func() {
 		if hijack {
@@ -128,22 +129,22 @@ func (s *Server) ServeConn(conn net.Conn) {
 		PutRequestContext(reqCtx)
 	}()
 	reqCtx.server = s
-	//if debug {
-	//	reqCtx.conn = &logConn{conn}
-	//}
 	reqCtx.conn = conn
 	reqCtx.rawconn = conn
 	reqCtx.reqR = h1.RequestReader{
-		//R: &logConn{conn},
 		R:          conn,
 		ReadBuffer: *readBuffer,
 		NextBuffer: nil,
 		Request:    h1.Request{},
 	}
-
-	//if debug {
-	//	reqCtx.reqR.R = &logConn{conn}
-	//}
+	/*
+		if debug {
+			reqCtx.conn = &logConn{conn}
+		}
+		if debug {
+			reqCtx.reqR.R = &logConn{conn}
+		}
+	*/
 
 	for {
 		if s.ReadTimeout > 0 {

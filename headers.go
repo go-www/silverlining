@@ -1,6 +1,6 @@
 package silverlining
 
-import "github.com/go-www/h1"
+import "github.com/go-www/silverlining/h1"
 
 type ResponseHeaders struct {
 	v *Context

@@ -3,7 +3,7 @@ package silverlining
 import (
 	"sync"
 
-	"github.com/go-www/h1"
+	"github.com/go-www/silverlining/h1"
 )
 
 type KV = h1.Query

@@ -3,7 +3,6 @@ module github.com/go-www/silverlining
 go 1.18
 
 require (
-	github.com/go-www/h1 v0.0.0-20220301151111-bd1d18e71e25
 	github.com/gobwas/ws v1.1.0
 	github.com/goccy/go-json v0.9.6
 	github.com/lemon-mint/envaddr v0.0.0-20220115112619-b1acf77f317e

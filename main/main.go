@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/go-www/h1"
 	"github.com/go-www/silverlining"
+	"github.com/go-www/silverlining/h1"
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
 	"github.com/lemon-mint/envaddr"
