@@ -29,7 +29,7 @@ func main() {
 
 	for _, benchmark := range Benchmarks {
 		var buffer bytes.Buffer
-		cmd := exec.Command("go", "test", "-bench="+benchmark, "-benchmem", "-cpuprofile", "testOutput/"+benchmark+"_profile.out", "-memprofile", "testOutput/"+benchmark+"_memprofile.out")
+		cmd := exec.Command("go", "test", "-bench="+benchmark, "-benchmem", "-cpuprofile", "testOutput/"+benchmark+"_profile.out", "-memprofile", "testOutput/"+benchmark+"_memprofile.out", "github.com/go-www/silverlining/h1")
 		cmd.Stdout = &buffer
 		cmd.Stderr = &buffer
 		err := cmd.Run()
