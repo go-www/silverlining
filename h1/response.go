@@ -106,28 +106,7 @@ func (r *Response) Write(b []byte) (int, error) {
 }
 
 func (r *Response) WriteString(b string) (int, error) {
-	n := copy(r.buf[r.n:cap(r.buf)], b) // copy to buffer
-	r.n += n
-	if len(r.buf) < cap(r.buf) {
-		return n, nil
-	}
-
-	// buffer is full, flush it
-	err := r.Flush()
-	if err != nil {
-		return 0, err
-	}
-
-	// If b is bigger than buffer, write it directly
-	if len(b)-n > cap(r.buf) {
-		_, err = r.upstream.Write(stringToBytes(b[n:]))
-		return len(b), err
-	}
-
-	// copy b to buffer
-	copy(r.buf, b[n:])
-	r.n = len(b) - n
-	return n, nil
+	return r.Write(stringToBytes(b))
 }
 
 func (r *Response) WriteInt(i int) (int, error) {
