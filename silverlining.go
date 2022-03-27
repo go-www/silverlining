@@ -266,26 +266,10 @@ func (r *Context) CloseBodyReader() {
 	}
 }
 
-type ResponseType uint8
-
-const (
-	ResponseTypeNone ResponseType = iota
-	ResponseTypeFullBody
-	ResponseTypeStream
-	ResponseTypeHijack
-	ResponseTypeUser
-)
-
 type Response struct {
 	Headers []Header
 
-	// FullBody []byte    // for ResponseTypeFullBody
-	// Stream   io.Reader // for ResponseTypeStream
-	// Hijack   func() (io.ReadCloser, io.Writer)
-
 	StatusCode int
-
-	// BodyType ResponseType
 }
 
 type Header struct {
