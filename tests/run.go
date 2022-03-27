@@ -10,6 +10,8 @@ import (
 	"os/exec"
 	"runtime"
 	"time"
+
+	"github.com/lemon-mint/godotenv"
 )
 
 var Benchmarks = []string{
@@ -23,6 +25,8 @@ var Benchmarks = []string{
 }
 
 func main() {
+	godotenv.Load()
+
 	err := os.Mkdir("testOutput", 0777)
 	if err != nil {
 		log.Println(err)
