@@ -83,14 +83,16 @@ func main() {
 
 	fmt.Print("\n")
 
+	var cmdOut bytes.Buffer
 	// Start the pprof server
 	cmd := exec.Command("go", "run", "./pprofserver")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err = cmd.Run()
+	cmd.Stdout = &cmdOut
+	cmd.Stderr = &cmdOut
+	err = cmd.Start()
 	if err != nil {
 		panic(err)
 	}
+	defer cmd.Process.Kill()
 
 	// Wait for the pprof server to start
 	time.Sleep(time.Second * 10)
