@@ -32,7 +32,7 @@ func main() {
 		log.Println(err)
 	}
 
-	fmt.Print("# Benchmark Results (OS:", runtime.GOOS, ")\n")
+	fmt.Printf("# Benchmark Results (OS: %s, Arch: %s, Go Version: %s)\n", runtime.GOOS, runtime.GOARCH, runtime.Version())
 
 	for _, benchmark := range Benchmarks {
 		var buffer bytes.Buffer
