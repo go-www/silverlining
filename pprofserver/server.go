@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"log"
+	"net/http"
+	_ "net/http/pprof"
 
 	"github.com/go-www/silverlining"
 )
@@ -34,6 +36,11 @@ func main() {
 			r.WriteFullBody(404, nil)
 		}
 	}
+
+	go func() {
+		// Start the pprof server
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 
 	var err error
 	if *prefork {

@@ -3,10 +3,13 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"runtime"
+	"time"
 )
 
 var Benchmarks = []string{
@@ -29,7 +32,7 @@ func main() {
 
 	for _, benchmark := range Benchmarks {
 		var buffer bytes.Buffer
-		cmd := exec.Command("go", "test", "-bench="+benchmark, "-benchmem", "-cpuprofile", "testOutput/"+benchmark+"_profile.out", "-memprofile", "testOutput/"+benchmark+"_memprofile.out", "github.com/go-www/silverlining/h1")
+		cmd := exec.Command("go", "test", "-bench="+benchmark, "-benchmem", "-cpuprofile", "testOutput/"+benchmark+"_cpu_profile.out", "-memprofile", "testOutput/"+benchmark+"_mem_profile.out", "github.com/go-www/silverlining/h1")
 		cmd.Stdout = &buffer
 		cmd.Stderr = &buffer
 		err := cmd.Run()
@@ -38,7 +41,7 @@ func main() {
 		}
 
 		var CPUImageBuffer bytes.Buffer
-		cmd = exec.Command("go", "tool", "pprof", "-png", "./testOutput/"+benchmark+"_profile.out")
+		cmd = exec.Command("go", "tool", "pprof", "-png", "./testOutput/"+benchmark+"_cpu_profile.out")
 		cmd.Stdout = &CPUImageBuffer
 		cmd.Stderr = os.Stderr
 		err = cmd.Run()
@@ -47,7 +50,7 @@ func main() {
 		}
 
 		var MemImageBuffer bytes.Buffer
-		cmd = exec.Command("go", "tool", "pprof", "-png", "./testOutput/"+benchmark+"_memprofile.out")
+		cmd = exec.Command("go", "tool", "pprof", "-png", "./testOutput/"+benchmark+"_mem_profile.out")
 		cmd.Stdout = &MemImageBuffer
 		cmd.Stderr = os.Stderr
 		err = cmd.Run()
@@ -55,12 +58,12 @@ func main() {
 			panic(err)
 		}
 
-		cpuURL, _, err := uploadImage(CPUImageBuffer.Bytes(), benchmark+"_profile.png")
+		cpuURL, _, err := uploadImage(CPUImageBuffer.Bytes(), benchmark+"_cpu_profile.png")
 		if err != nil {
 			panic(err)
 		}
 
-		memURL, _, err := uploadImage(MemImageBuffer.Bytes(), benchmark+"_memprofile.png")
+		memURL, _, err := uploadImage(MemImageBuffer.Bytes(), benchmark+"_mem_profile.png")
 		if err != nil {
 			panic(err)
 		}
@@ -75,4 +78,73 @@ func main() {
 	}
 
 	fmt.Print("\n")
+
+	// Start the pprof server
+	cmd := exec.Command("go", "run", "./pprofserver")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
+	if err != nil {
+		panic(err)
+	}
+
+	// Wait for the pprof server to start
+	time.Sleep(time.Second * 10)
+
+	downloadDone := make(chan struct{})
+	// Download CPU profile
+	go func() {
+		f, err := os.Create("./testOutput/server_cpu_profile.out")
+		if err != nil {
+			panic(err)
+		}
+		defer f.Close()
+
+		resp, err := http.Get("http://localhost:6060/debug/pprof/profile?seconds=30")
+		if err != nil {
+			panic(err)
+		}
+		defer resp.Body.Close()
+
+		_, err = io.Copy(f, resp.Body)
+		if err != nil {
+			panic(err)
+		}
+
+		downloadDone <- struct{}{}
+	}()
+
+	// Start the Load Test
+	cmd = exec.Command("oha", "-z", "35sec", "--no-tui", "http://localhost:8080/plaintext")
+	var ohaOutput bytes.Buffer
+	cmd.Stdout = &ohaOutput
+	cmd.Stderr = &ohaOutput
+	err = cmd.Run()
+	if err != nil {
+		panic(err)
+	}
+
+	<-downloadDone
+
+	fmt.Print("\n## Load Test Results\n")
+	fmt.Printf("\n```\n%s\n```\n", ohaOutput.String())
+	fmt.Printf("\n")
+
+	// Create Benchmark Results Image
+	var CPUImageBuffer bytes.Buffer
+	cmd = exec.Command("go", "tool", "pprof", "-png", "./testOutput/server_cpu_profile.out")
+	cmd.Stdout = &CPUImageBuffer
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
+	if err != nil {
+		panic(err)
+	}
+
+	cpuURL, _, err := uploadImage(CPUImageBuffer.Bytes(), "server_cpu_profile.png")
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("\n### CPU Profile\n")
+	fmt.Printf("\n![CPU Profile](%s)\n\n", cpuURL)
 }
