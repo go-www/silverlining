@@ -61,7 +61,7 @@ jobs:
             target/
             ~/.cache/go-build
             ~/go/pkg/mod
-          key: ${{ runner.os }}-cargo-${{ hashFiles('.github/workflows/go.yml') }}${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-${{ matrix.go_version }}-${{ hashFiles('.github/workflows/go.yml') }}${{ hashFiles('**/go.sum') }}
 
       - name: Set up Go
         uses: actions/setup-go@v2
