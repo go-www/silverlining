@@ -99,33 +99,19 @@ const debug = false
 
 func (s *Server) ServeConn(conn net.Conn) {
 	var hijack bool
-
-	defer func() {
-		if hijack {
-			return
-		}
-		conn.Close()
-	}()
-
 	readBuffer := getBuffer8k()
-	defer func() {
-		if hijack {
-			return
-		}
-		putBuffer8k(readBuffer)
-	}()
-
 	reqCtx := GetRequestContext(conn)
 	/*
 		if debug {
 			reqCtx = GetRequestContext(&logConn{conn})
 		}
 	*/
-	//defer PutRequestContext(reqCtx)
 	defer func() {
 		if hijack {
 			return
 		}
+		conn.Close()
+		putBuffer8k(readBuffer)
 		PutRequestContext(reqCtx)
 	}()
 	reqCtx.server = s
