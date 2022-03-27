@@ -45,8 +45,6 @@ jobs:
         go_version:
           - 1.18
           - 1.17
-          - 1.16
-          - 1.15
     steps:
       - uses: actions/checkout@v2
 
@@ -68,20 +66,20 @@ jobs:
         with:
           go-version: ${{ matrix.go_version }}
 
-      - name: Install Rust
+      - name: Setup Graphviz
+        uses: ts-graphviz/setup-graphviz@v1
+
+      - name: Set up Rust
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly
+          toolchain: stable
 
-      - name: Setup Oha
+      - name: Set up Oha
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           cargo install --force oha
-
-      - name: Setup Graphviz
-        uses: ts-graphviz/setup-graphviz@v1
 
       - name: Run Benchmark
         env:
