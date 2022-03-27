@@ -39,7 +39,7 @@ func main() {
 
 	go func() {
 		// Start the pprof server
-		log.Println(http.ListenAndServe("localhost:6060", nil))
+		log.Println(http.ListenAndServe(":6060", nil))
 	}()
 
 	var err error
