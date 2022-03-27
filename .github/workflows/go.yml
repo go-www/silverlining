@@ -2,41 +2,40 @@ name: Go
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
-
   Build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Set up Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.17
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17
 
-    - name: Build
-      run: go build -v -gcflags="-m" ./...
+      - name: Build
+        run: go build -v -gcflags="-m" ./...
 
-    - name: Test
-      run: go test -v ./...
-    
-    - name: Make Report
-      run: |
-        go install github.com/lemon-mint/golang-ci-tools@latest
-        golang-ci-tools > report.md
+      - name: Test
+        run: go test -v ./...
 
-    - id: make-report-body
-      run: |
+      - name: Make Report
+        run: |
+          go install github.com/lemon-mint/golang-ci-tools@latest
+          golang-ci-tools > report.md
+
+      - id: make-report-body
+        run: |
           go run ./tests/urlescape report.md
-    - name: commit-comment
-      uses: peter-evans/commit-comment@v1
-      with:
-        body: ${{ steps.make-report-body.outputs.body }}
-  
+      - name: commit-comment
+        uses: peter-evans/commit-comment@v1
+        with:
+          body: ${{ steps.make-report-body.outputs.body }}
+
   Benchmark:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -44,56 +43,57 @@ jobs:
         os:
           - ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cargo/bin/
-          ~/.cargo/registry/index/
-          ~/.cargo/registry/cache/
-          ~/.cargo/git/db/
-          target/
-          ~/.cache/go-build
-          ~/go/pkg/mod
-        key: ${{ runner.os }}-cargo-${{ hashFiles('.github\workflows\*') }}${{ hashFiles('**/go.sum') }}
+      - uses: actions/cache@v3
+        id: cache
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-cargo-${{ hashFiles('.github\workflows\*') }}${{ hashFiles('**/go.sum') }}
 
-    - name: Set up Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.18
-    
-    - name: Install Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: nightly
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.18
 
+      - name: Install Rust
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
 
-    - name: Setup Graphviz
-      uses: ts-graphviz/setup-graphviz@v1
+      - name: Setup Oha
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          cargo install --force oha
 
-    - name: Setup Oha
-      run: |
-        cargo install --force oha
+      - name: Setup Graphviz
+        uses: ts-graphviz/setup-graphviz@v1
 
-    - name: Run Benchmark
-      env:
-        IMGUR_CLIENT_ID: ${{ secrets.IMGUR_CLIENT_ID }}
-      run: |
-        go run ./tests > benchmark.md
+      - name: Run Benchmark
+        env:
+          IMGUR_CLIENT_ID: ${{ secrets.IMGUR_CLIENT_ID }}
+        run: |
+          go run ./tests > benchmark.md
 
-    - uses: actions/upload-artifact@v2
-      with:
-        name: benchmark_pprof_output
-        path: testOutput
+      - uses: actions/upload-artifact@v2
+        with:
+          name: benchmark_pprof_output
+          path: testOutput
 
-    - id: make-benchmark-report
-      run: |
-        go run ./tests/urlescape benchmark.md
+      - id: make-benchmark-report
+        run: |
+          go run ./tests/urlescape benchmark.md
 
-    - name: commit-comment
-      uses: peter-evans/commit-comment@v1
-      with:
-        body: ${{ steps.make-benchmark-report.outputs.body }}
-
+      - name: commit-comment
+        uses: peter-evans/commit-comment@v1
+        with:
+          body: ${{ steps.make-benchmark-report.outputs.body }}
