@@ -54,7 +54,9 @@ jobs:
           ~/.cargo/registry/cache/
           ~/.cargo/git/db/
           target/
-        key: ${{ runner.os }}-cargo-${{ hashFiles('.github\workflows\*.yml') }}
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-cargo-${{ hashFiles('.github\workflows\*') }}${{ hashFiles('**/go.sum') }}
 
     - name: Set up Go
       uses: actions/setup-go@v2
@@ -73,7 +75,7 @@ jobs:
 
     - name: Setup Oha
       run: |
-        cargo install oha
+        cargo install --force oha
 
     - name: Run Benchmark
       env:
