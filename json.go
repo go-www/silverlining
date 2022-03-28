@@ -26,3 +26,12 @@ func (r *Context) WriteJSONIndent(status int, v any, prefix string, indent strin
 	r.ResponseHeaders().Set("Content-Type", "application/json")
 	return r.WriteFullBody(status, encoded)
 }
+
+func (r *Context) WriteJSONStream(status int, v any) error {
+	r.ResponseHeaders().Set("Content-Type", "application/json")
+	chunked := r.ChunkedBodyWriter()
+	defer chunked.Close()
+	encoder := json.NewEncoder(chunked)
+	err := encoder.Encode(v)
+	return err
+}
