@@ -89,7 +89,7 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: benchmark_pprof_output
+          name: benchmark_pprof_output_${{ runner.os }}-go${{ matrix.go_version }}
           path: testOutput
 
       - id: make-benchmark-report
