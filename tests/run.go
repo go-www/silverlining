@@ -83,11 +83,13 @@ func main() {
 
 	fmt.Print("\n")
 
-	var cmdOut bytes.Buffer
+	err = exec.Command("go", "build", "-o", "./pprofserver.exe.out", "./pprofserver").Run()
+	if err != nil {
+		panic(err)
+	}
+
 	// Start the pprof server
-	cmd := exec.Command("go", "run", "./pprofserver")
-	cmd.Stdout = &cmdOut
-	cmd.Stderr = &cmdOut
+	cmd := exec.Command("./pprofserver.exe.out")
 	err = cmd.Start()
 	if err != nil {
 		panic(err)
