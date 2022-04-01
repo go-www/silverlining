@@ -1,6 +1,7 @@
 package h1
 
 import (
+	"fmt"
 	"net/http"
 )
 
@@ -89,12 +90,10 @@ var _ = func() int {
 	return 0
 }()
 
-/*
 func DefineStatusLine(status int, statusText string) {
 	status = status & statusMask
 	statusLine[status] = []byte(fmt.Sprintf("HTTP/1.1 %d %s\r\n", status, statusText))
 }
-*/
 
 func GetStatusLine(status int) []byte {
 	status = status & statusMask
