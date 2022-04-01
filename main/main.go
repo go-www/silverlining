@@ -106,13 +106,13 @@ func main() {
 			hs := r.RequestHeaders().List()
 
 			type HttpRequest struct {
-				Method string `json:"method"`
+				Method string `json:"method,omitempty"`
 
-				Args    map[string]string      `json:"args"`
-				Data    string                 `json:"data"`
-				JSON    map[string]interface{} `json:"json"`
-				Form    map[string]string      `json:"form"`
-				Headers map[string]string      `json:"headers"`
+				Args    map[string]string      `json:"args,omitempty"`
+				Data    string                 `json:"data,omitempty"`
+				JSON    map[string]interface{} `json:"json,omitempty"`
+				Form    map[string]string      `json:"form,omitempty"`
+				Headers map[string]string      `json:"headers,omitempty"`
 			}
 
 			reqData := HttpRequest{
