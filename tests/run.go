@@ -100,6 +100,7 @@ func main() {
 	time.Sleep(time.Second * 10)
 
 	downloadDone := make(chan struct{})
+	traceDone := make(chan struct{})
 	// Download CPU profile
 	go func() {
 		f, err := os.Create("./testOutput/server_cpu_profile.out")
@@ -122,6 +123,28 @@ func main() {
 		downloadDone <- struct{}{}
 	}()
 
+	// Download trace
+	go func() {
+		f, err := os.Create("./testOutput/server_trace.out")
+		if err != nil {
+			panic(err)
+		}
+		defer f.Close()
+
+		resp, err := http.Get("http://localhost:6060/debug/pprof/trace?seconds=30")
+		if err != nil {
+			panic(err)
+		}
+		defer resp.Body.Close()
+
+		_, err = io.Copy(f, resp.Body)
+		if err != nil {
+			panic(err)
+		}
+
+		traceDone <- struct{}{}
+	}()
+
 	// Start the Load Test
 	cmd = exec.Command("oha", "-z", "35sec", "--no-tui", "http://localhost:8080/plaintext")
 	var ohaOutput bytes.Buffer
@@ -133,6 +156,7 @@ func main() {
 	}
 
 	<-downloadDone
+	<-traceDone
 
 	fmt.Print("\n## Load Test Results\n")
 	fmt.Printf("\n```\n%s\n```\n", ohaOutput.String())
