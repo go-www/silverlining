@@ -86,3 +86,25 @@ func (r *Context) getHeaderBytes(name []byte) ([]byte, bool) {
 	}
 	return h.RawValue, true
 }
+
+var host_header = stringToBytes("Host")
+
+// (*Context).Host returns the value of the Host header.
+// Returned value is valid until the next request.
+func (r *Context) Host() string {
+	h, ok := r.getHeaderBytes(host_header)
+	if !ok {
+		return ""
+	}
+	return bytesToString(h)
+}
+
+// (*Context).HostBytes returns the value of the Host header.
+// Returned value is valid until the next request.
+func (r *Context) HostBytes() []byte {
+	h, ok := r.getHeaderBytes(host_header)
+	if !ok {
+		return nil
+	}
+	return h
+}
