@@ -52,7 +52,7 @@ func (fds *FastDateServer) updateDate(date time.Time) {
 }
 
 func (fds *FastDateServer) GetDate() []byte {
-	return *fds.current
+	return *(*[]byte)(atomic.LoadPointer((*unsafe.Pointer)(unsafe.Pointer(&fds.current))))
 }
 
 func (fds *FastDateServer) Start() {

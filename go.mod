@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/gobwas/ws v1.1.0
-	github.com/goccy/go-json v0.9.10
+	github.com/goccy/go-json v0.9.11
 	github.com/lemon-mint/envaddr v0.0.0-20220115112619-b1acf77f317e
 	github.com/lemon-mint/godotenv v1.0.3
 	github.com/libp2p/go-reuseport v0.2.0
@@ -14,5 +14,5 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
-	golang.org/x/sys v0.0.0-20220731174439-a90be440212d // indirect
+	golang.org/x/sys v0.1.0 // indirect
 )
