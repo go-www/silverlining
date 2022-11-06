@@ -4,6 +4,7 @@ import (
 	"io"
 	"net"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/go-www/silverlining/gopool"
@@ -20,6 +21,8 @@ const (
 )
 
 type Server struct {
+	connid uint64 // Connection id
+
 	Listener net.Listener // Listener for incoming connections
 
 	MaxBodySize int64 // Max body size (default: 2MB)
@@ -114,6 +117,7 @@ func (s *Server) ServeConn(conn net.Conn) {
 		putBuffer8k(readBuffer)
 		PutRequestContext(reqCtx)
 	}()
+	reqCtx.connID = atomic.AddUint64(&s.connid, 1)
 	reqCtx.server = s
 	reqCtx.conn = conn
 	reqCtx.rawconn = conn
@@ -194,6 +198,7 @@ type Context struct {
 	conn io.ReadWriteCloser
 
 	rawconn net.Conn
+	connID  uint64
 
 	hijack bool
 }
@@ -366,4 +371,14 @@ func (r *Context) ConnectionClose() {
 func (r *Context) KillConn() error {
 	r.ConnectionClose()
 	return r.conn.Close()
+}
+
+// (*Context).ConnID returns the connection ID.
+func (r *Context) ConnID() uint64 {
+	return r.connID
+}
+
+// (*Context).RemoteAddr returns the remote address.
+func (r *Context) RemoteAddr() net.Addr {
+	return r.rawconn.RemoteAddr()
 }
