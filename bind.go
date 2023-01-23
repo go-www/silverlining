@@ -41,7 +41,7 @@ func bindStruct(v any, stag string, src func(key string) (value string, found bo
 					return err
 				}
 				f.SetInt(IntValue)
-			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 				UintValue, err := strconv.ParseUint(v, 10, 64)
 				if err != nil {
 					return err
