@@ -7,7 +7,7 @@ require (
 	github.com/goccy/go-json v0.10.2
 	github.com/lemon-mint/envaddr v0.0.0-20220115112619-b1acf77f317e
 	github.com/lemon-mint/godotenv v1.0.3
-	github.com/libp2p/go-reuseport v0.2.0
+	github.com/libp2p/go-reuseport v0.3.0
 )
 
 require (
