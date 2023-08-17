@@ -12,8 +12,8 @@ github.com/lemon-mint/envaddr v0.0.0-20220115112619-b1acf77f317e h1:WHTlxOrYAnJk
 github.com/lemon-mint/envaddr v0.0.0-20220115112619-b1acf77f317e/go.mod h1:kzf0S/z9swcXpeo2+e1fY63g5/ZfIop37MgBmXLmDL0=
 github.com/lemon-mint/godotenv v1.0.3 h1:wJBuGdp5eez/ycl9c8502qLj1RBPRHLDHTR6eoD/pwM=
 github.com/lemon-mint/godotenv v1.0.3/go.mod h1:hBLJjPZkQ2QMrEwirLCQ+tRkWBKufZ1VxoqpZixGUYo=
-github.com/libp2p/go-reuseport v0.3.0 h1:iiZslO5byUYZEg9iCwJGf5h+sf1Agmqx2V2FDjPyvUw=
-github.com/libp2p/go-reuseport v0.3.0/go.mod h1:laea40AimhtfEqysZ71UpYj4S+R9VpH8PgqLo7L+SwI=
+github.com/libp2p/go-reuseport v0.4.0 h1:nR5KU7hD0WxXCJbmw7r2rhRYruNRl2koHw8fQscQm2s=
+github.com/libp2p/go-reuseport v0.4.0/go.mod h1:ZtI03j/wO5hZVDFo2jKywN6bYKWLOy8Se6DrI2E1cLU=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/stretchr/testify v1.7.0 h1:nwc3DEeHmmLAfoZucVR881uASk0Mfjw8xYJ99tb5CcY=
 golang.org/x/sys v0.6.0 h1:MVltZSvRTcU2ljQOhs94SXPftV6DCNnZViHeQps87pQ=
