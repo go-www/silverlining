@@ -73,42 +73,11 @@ func putBuffer8k(b *[]byte) {
 	buffer8kPool.Put(b)
 }
 
-/*
-type logConn struct {
-	c net.Conn
-}
-
-func (lc *logConn) Read(b []byte) (n int, err error) {
-	n, err = lc.c.Read(b)
-	log.Printf("Read: %d bytes\n", n)
-	log.Println(string(b[:n]))
-	return
-}
-
-func (lc *logConn) Write(b []byte) (n int, err error) {
-	log.Printf("Write: %d bytes\n", len(b))
-	log.Println(string(b))
-	return lc.c.Write(b)
-}
-
-func (lc *logConn) Close() error {
-	log.Println("Close")
-	return lc.c.Close()
-}
-
-const debug = false
-
-*/
-
 func (s *Server) ServeConn(conn net.Conn) {
 	var hijack bool
 	readBuffer := getBuffer8k()
 	reqCtx := GetRequestContext(conn)
-	/*
-		if debug {
-			reqCtx = GetRequestContext(&logConn{conn})
-		}
-	*/
+
 	defer func() {
 		if hijack {
 			return
@@ -127,14 +96,6 @@ func (s *Server) ServeConn(conn net.Conn) {
 		NextBuffer: nil,
 		Request:    h1.Request{},
 	}
-	/*
-		if debug {
-			reqCtx.conn = &logConn{conn}
-		}
-		if debug {
-			reqCtx.reqR.R = &logConn{conn}
-		}
-	*/
 
 	for {
 		if s.ReadTimeout > 0 {
@@ -158,14 +119,11 @@ func (s *Server) ServeConn(conn net.Conn) {
 			return
 		}
 
-		// println("Response:", reqCtx.response.StatusCode)
-
 		if reqCtx.reqR.Remaining() == 0 {
 			err = reqCtx.respW.Flush()
 			if err != nil {
 				return
 			}
-			// continue
 		}
 	}
 }
