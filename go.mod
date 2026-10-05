@@ -1,10 +1,10 @@
 module github.com/go-www/silverlining
 
-go 1.19
+go 1.23
 
 require (
 	github.com/gobwas/ws v1.3.1
-	github.com/goccy/go-json v0.10.3
+	github.com/goccy/go-json v0.11.2
 	github.com/lemon-mint/envaddr v0.0.0-20220115112619-b1acf77f317e
 	github.com/lemon-mint/godotenv v1.0.3
 	github.com/libp2p/go-reuseport v0.4.0
